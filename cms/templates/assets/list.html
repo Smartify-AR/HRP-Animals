@@ -1,0 +1,480 @@
+{% extends "base.html" %}
+
+{% block title %}Assets - CMS{% endblock %}
+
+{% block extra_head %}
+<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/3.3.0/model-viewer.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1>Asset Management</h1>
+        {% if current_user.can_edit() %}
+        <a href="{{ url_for('upload.upload') }}" class="btn btn-primary">Upload New Asset</a>
+        {% else %}
+        <span class="text-muted">View only - Editor or Admin access required to upload/modify assets</span>
+        {% endif %}
+    </div>
+</div>
+
+<div class="row">
+    <!-- 3D Models -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>3D Models</h5>
+            </div>
+            <div class="card-body">
+                {% if models %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Model Name</th>
+                                    <th>Files</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for model in models %}
+                                <tr class="asset-row" 
+                                    data-asset-type="model" 
+                                    data-asset-path="{{ model.glb_path }}"
+                                    data-asset-name="{{ model.name }}">
+                                    <td>
+                                        <strong>{{ model.name }}</strong>
+                                        {% if not model.usdz %}
+                                        <br><small class="text-warning">Missing USDZ file</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small>
+                                            {% if model.glb %}
+                                            GLB: {{ "%.1f"|format(model.glb_size / 1024) }} KB<br>
+                                            {% endif %}
+                                            {% if model.usdz %}
+                                            USDZ: {{ "%.1f"|format(model.usdz_size / 1024) }} KB
+                                            {% else %}
+                                            <span class="text-muted">USDZ: Not found</span>
+                                            {% endif %}
+                                        </small>
+                                    </td>
+                                    <td>
+                                        {% if current_user.can_edit() %}
+                                        <form method="POST" action="{{ url_for('upload.replace') }}" 
+                                              enctype="multipart/form-data" class="d-inline" id="replace-model-{{ loop.index }}">
+                                            <input type="hidden" name="old_path" value="{{ model.glb_path }}">
+                                            <input type="file" name="model_glb" accept=".glb" class="d-none" 
+                                                   id="replace-glb-{{ loop.index }}" required>
+                                            <input type="file" name="model_usdz" accept=".usdz" class="d-none" 
+                                                   id="replace-usdz-{{ loop.index }}" required>
+                                            <button type="button" class="btn btn-sm btn-secondary replace-model-btn" 
+                                                    data-index="{{ loop.index }}">
+                                                Replace
+                                            </button>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('upload.delete') }}" 
+                                              class="d-inline" onsubmit="return confirm('Delete this model? This will remove both GLB and USDZ files.');">
+                                            <input type="hidden" name="file_path" value="{{ model.glb_path }}">
+                                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                        </form>
+                                        {% else %}
+                                        <span class="text-muted">View only</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No 3D models uploaded</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Shadow Icons -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Shadow Icons</h5>
+            </div>
+            <div class="card-body">
+                {% if shadows %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Filename</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for shadow in shadows %}
+                                <tr class="asset-row" 
+                                    data-asset-type="image" 
+                                    data-asset-path="{{ shadow.path }}"
+                                    data-asset-name="{{ shadow.name }}">
+                                    <td><code>{{ shadow.name }}</code></td>
+                                    <td>
+                                        {% if current_user.can_edit() %}
+                                        <form method="POST" action="{{ url_for('upload.replace') }}" 
+                                              enctype="multipart/form-data" class="d-inline">
+                                            <input type="hidden" name="old_path" value="{{ shadow.path }}">
+                                            <input type="file" name="file" class="d-none" 
+                                                   onchange="this.form.submit()" id="replace-shadow-{{ loop.index }}">
+                                            <label for="replace-shadow-{{ loop.index }}" class="btn btn-sm btn-secondary">Replace</label>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('upload.delete') }}" 
+                                              class="d-inline" onsubmit="return confirm('Delete this file?');">
+                                            <input type="hidden" name="file_path" value="{{ shadow.path }}">
+                                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                        </form>
+                                        {% else %}
+                                        <span class="text-muted">View only</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No shadow icons uploaded</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Found Icons -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Found Icons</h5>
+            </div>
+            <div class="card-body">
+                {% if found %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Filename</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for icon in found %}
+                                <tr class="asset-row" 
+                                    data-asset-type="image" 
+                                    data-asset-path="{{ icon.path }}"
+                                    data-asset-name="{{ icon.name }}">
+                                    <td><code>{{ icon.name }}</code></td>
+                                    <td>
+                                        {% if current_user.can_edit() %}
+                                        <form method="POST" action="{{ url_for('upload.replace') }}" 
+                                              enctype="multipart/form-data" class="d-inline">
+                                            <input type="hidden" name="old_path" value="{{ icon.path }}">
+                                            <input type="file" name="file" class="d-none" 
+                                                   onchange="this.form.submit()" id="replace-found-{{ loop.index }}">
+                                            <label for="replace-found-{{ loop.index }}" class="btn btn-sm btn-secondary">Replace</label>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('upload.delete') }}" 
+                                              class="d-inline" onsubmit="return confirm('Delete this file?');">
+                                            <input type="hidden" name="file_path" value="{{ icon.path }}">
+                                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                        </form>
+                                        {% else %}
+                                        <span class="text-muted">View only</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No found icons uploaded</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    
+    <!-- Badge Icons -->
+    <div class="col-md-6 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5>Badge Icons</h5>
+            </div>
+            <div class="card-body">
+                {% if badges %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Filename</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for badge in badges %}
+                                <tr class="asset-row" 
+                                    data-asset-type="image" 
+                                    data-asset-path="{{ badge.path }}"
+                                    data-asset-name="{{ badge.name }}">
+                                    <td><code>{{ badge.name }}</code></td>
+                                    <td>
+                                        {% if current_user.can_edit() %}
+                                        <form method="POST" action="{{ url_for('upload.replace') }}" 
+                                              enctype="multipart/form-data" class="d-inline">
+                                            <input type="hidden" name="old_path" value="{{ badge.path }}">
+                                            <input type="file" name="file" class="d-none" 
+                                                   onchange="this.form.submit()" id="replace-badge-{{ loop.index }}">
+                                            <label for="replace-badge-{{ loop.index }}" class="btn btn-sm btn-secondary">Replace</label>
+                                        </form>
+                                        <form method="POST" action="{{ url_for('upload.delete') }}" 
+                                              class="d-inline" onsubmit="return confirm('Delete this file?');">
+                                            <input type="hidden" name="file_path" value="{{ badge.path }}">
+                                            <button type="submit" class="btn btn-sm btn-danger">Delete</button>
+                                        </form>
+                                        {% else %}
+                                        <span class="text-muted">View only</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                {% else %}
+                    <p class="text-muted">No badge icons uploaded</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Hover Preview Tooltip -->
+<div id="asset-preview-tooltip" class="asset-preview-tooltip">
+    <div id="preview-content"></div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle model replacement - require both GLB and USDZ files
+    const replaceButtons = document.querySelectorAll('.replace-model-btn');
+    replaceButtons.forEach(button => {
+        const index = button.getAttribute('data-index');
+        const glbInput = document.getElementById(`replace-glb-${index}`);
+        const usdzInput = document.getElementById(`replace-usdz-${index}`);
+        const form = document.getElementById(`replace-model-${index}`);
+        
+        let glbFile = null;
+        let usdzFile = null;
+        
+        button.addEventListener('click', function() {
+            // Reset files
+            glbFile = null;
+            usdzFile = null;
+            glbInput.value = '';
+            usdzInput.value = '';
+            // Start by asking for GLB file
+            glbInput.click();
+        });
+        
+        glbInput.addEventListener('change', function(e) {
+            if (this.files.length > 0) {
+                const file = this.files[0];
+                if (!file.name.toLowerCase().endsWith('.glb')) {
+                    alert('Please select a GLB file');
+                    this.value = '';
+                    return;
+                }
+                glbFile = file;
+                // Now ask for USDZ file
+                if (!usdzFile) {
+                    usdzInput.click();
+                } else {
+                    // Both files selected, submit
+                    form.submit();
+                }
+            }
+        });
+        
+        usdzInput.addEventListener('change', function(e) {
+            if (this.files.length > 0) {
+                const file = this.files[0];
+                if (!file.name.toLowerCase().endsWith('.usdz')) {
+                    alert('Please select a USDZ file');
+                    this.value = '';
+                    return;
+                }
+                usdzFile = file;
+                // Check if GLB is also selected
+                if (glbFile) {
+                    // Both files selected, submit
+                    form.submit();
+                } else {
+                    // Need GLB file first
+                    alert('Please select GLB file first');
+                    this.value = '';
+                    glbInput.click();
+                }
+            }
+        });
+    });
+    
+    const tooltip = document.getElementById('asset-preview-tooltip');
+    const previewContent = document.getElementById('preview-content');
+    const assetRows = document.querySelectorAll('.asset-row');
+    let currentTimeout = null;
+    
+    assetRows.forEach(row => {
+        row.addEventListener('mouseenter', function(e) {
+            // Clear any pending timeout
+            if (currentTimeout) {
+                clearTimeout(currentTimeout);
+            }
+            
+            const assetType = this.dataset.assetType;
+            const assetPath = this.dataset.assetPath;
+            const assetName = this.dataset.assetName;
+            
+            // Small delay to prevent flickering
+            currentTimeout = setTimeout(() => {
+                showPreview(assetType, assetPath, assetName, e);
+            }, 300);
+        });
+        
+        row.addEventListener('mouseleave', function() {
+            if (currentTimeout) {
+                clearTimeout(currentTimeout);
+            }
+            hidePreview();
+        });
+        
+        row.addEventListener('mousemove', function(e) {
+            if (tooltip.style.display === 'block') {
+                positionTooltip(e);
+            }
+        });
+    });
+    
+    function convertAssetPath(relativePath) {
+        // Convert relative paths like ../../assets/... to /assets/...
+        if (relativePath.startsWith('../../assets/')) {
+            const absolutePath = relativePath.replace('../../assets/', '/assets/');
+            console.log('Path conversion:', relativePath, '->', absolutePath);
+            return absolutePath;
+        }
+        // If already absolute, return as is
+        if (relativePath.startsWith('/')) {
+            return relativePath;
+        }
+        // Otherwise, assume it's relative and convert
+        console.warn('Unexpected path format:', relativePath);
+        return relativePath;
+    }
+    
+    function showPreview(type, path, name, event) {
+        previewContent.innerHTML = '';
+        
+        // Convert relative path to absolute path for Flask route
+        const absolutePath = convertAssetPath(path);
+        
+        if (type === 'model') {
+            // Only preview GLB files (model-viewer doesn't support USDZ)
+            const isGLB = path.toLowerCase().endsWith('.glb');
+            
+            if (isGLB) {
+                const modelViewer = document.createElement('model-viewer');
+                modelViewer.src = absolutePath;
+                modelViewer.alt = name;
+                modelViewer.setAttribute('autoplay', '');
+                modelViewer.setAttribute('shadow-intensity', '0.5');
+                modelViewer.setAttribute('shadow-softness', '1.0');
+                modelViewer.setAttribute('exposure', '1.0');
+                modelViewer.setAttribute('background-color', '#FCF6EF');
+                modelViewer.setAttribute('camera-orbit', '0deg 75deg 1.5m');
+                modelViewer.setAttribute('camera-target', '0m 0m 0m');
+                modelViewer.setAttribute('interaction-policy', 'allow-when-focused');
+                modelViewer.style.width = '300px';
+                modelViewer.style.height = '300px';
+                previewContent.appendChild(modelViewer);
+                positionTooltip(event);
+                tooltip.style.display = 'block';
+            } else {
+                // USDZ files - show message that preview uses GLB
+                previewContent.innerHTML = `<p class="text-muted">Preview shows GLB file. Hover over model name to see 3D preview.</p>`;
+                positionTooltip(event);
+                tooltip.style.display = 'block';
+            }
+        } else if (type === 'image') {
+            // Use img tag for all images (works for SVG, PNG, JPG)
+            console.log('Loading image preview:', { type, path, name, absolutePath });
+            const img = document.createElement('img');
+            img.src = absolutePath;
+            img.alt = name;
+            img.className = 'hover-preview-image';
+            // Set explicit sizing to ensure image displays
+            img.style.maxWidth = '300px';
+            img.style.maxHeight = '300px';
+            img.style.minWidth = '100px';
+            img.style.minHeight = '100px';
+            img.style.width = 'auto';
+            img.style.height = 'auto';
+            img.style.objectFit = 'contain';
+            img.onload = function() {
+                console.log('Image loaded successfully:', absolutePath, 'Dimensions:', img.naturalWidth, 'x', img.naturalHeight);
+                // Ensure the image is visible
+                if (img.naturalWidth === 0 || img.naturalHeight === 0) {
+                    console.warn('Image has zero dimensions, may be SVG without viewBox');
+                    img.style.width = '300px';
+                    img.style.height = '300px';
+                }
+            };
+            img.onerror = function() {
+                console.error('Failed to load image:', absolutePath, 'Original path:', path);
+                previewContent.innerHTML = '<p class="text-muted text-center p-3">Preview not available</p>';
+            };
+            previewContent.appendChild(img);
+            // Ensure preview content container has proper sizing
+            previewContent.style.minWidth = '300px';
+            previewContent.style.minHeight = '300px';
+            positionTooltip(event);
+            tooltip.style.display = 'block';
+        }
+    }
+    
+    function hidePreview() {
+        tooltip.style.display = 'none';
+        previewContent.innerHTML = '';
+    }
+    
+    function positionTooltip(event) {
+        const tooltipWidth = 320;
+        const tooltipHeight = 320;
+        const margin = 20;
+        
+        // Use clientX/clientY (viewport coordinates) since tooltip is position: fixed
+        let left = event.clientX + margin;
+        let top = event.clientY + margin;
+        
+        // Adjust if tooltip would go off screen
+        if (left + tooltipWidth > window.innerWidth) {
+            left = event.clientX - tooltipWidth - margin;
+        }
+        if (top + tooltipHeight > window.innerHeight) {
+            top = event.clientY - tooltipHeight - margin;
+        }
+        
+        tooltip.style.left = left + 'px';
+        tooltip.style.top = top + 'px';
+    }
+});
+</script>
+{% endblock %}
+

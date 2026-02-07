@@ -1,0 +1,449 @@
+/* Theme variables are in theme.css – load that first. */
+
+/* ==============================
+   General Overlay Styling
+   ============================== */
+/* For browsers that support dynamic viewport units */
+@supports (height: 100dvh) {
+  .overlay {
+    height: 100dvh;
+  }
+}
+.overlay {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; /* Ensure header is at the top and footer is at the bottom */
+  background-size: cover;
+  background-attachment: fixed;
+  /* Use dynamic viewport units if supported, so that the height matches the visible area */
+  height: 100vh;
+  width: 100vw;
+  z-index: 9999;
+  position: absolute;
+  top: 0;
+  left: 0;
+}
+
+/* Background images for overlays */
+#onboarding {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-height: 100vh;
+    gap: 50px;
+    /* Background image removed - using animated landing background instead */
+    background: transparent;
+}
+
+/* Fix for mobile Safari */
+@supports (-webkit-touch-callout: none) {
+    #onboarding {
+        min-height: -webkit-fill-available;
+    }
+}
+
+/* Ensure content is properly centered and spaced on all devices */
+.onboarding-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 600px;
+    padding: 0;
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-left: auto;
+    margin-right: auto;
+    transform: translateX(0px); /* Adjust this value to move content left/right */
+}
+
+/* Logo styling exactly as per Figma */
+.onboarding-logo {
+    width: 85px;
+    height: 40px;
+    display: block;
+    margin-top: 30px;
+    margin-bottom: 50px;
+}
+
+/* Title styling - override for landing page */
+.onboarding-title {
+    color: var(--Texts-textMain, #514848);
+    text-align: center;
+    font-family: var(--font-family-primary);
+    font-size: 80px;
+    font-style: normal;
+    font-weight: 700;
+    line-height: 90%;
+    width: 100%;
+    margin-top: -35vh;
+    margin-bottom: 30px;
+    margin-left: 0;
+    margin-right: 0;
+}
+.onboarding-title.display-title {
+    font-family: var(--Display-Font-Family), serif;
+    font-weight: 400;
+    line-height: 110%;
+    letter-spacing: -1.5px;
+    text-transform: uppercase;
+}
+/* Landing-specific: center the title vertically */
+.landing-overlay .onboarding-title {
+    margin-top: 0 !important;
+}
+
+/* Adjust for smaller screens like iPhone 13 Pro (menu etc. – not landing) */
+@media screen and (max-height: 900px) {
+  .onboarding-title {
+      margin-top: -45vh;
+  }
+  .landing-overlay .onboarding-title {
+      margin-top: 0 !important;
+  }
+}
+
+/* Adjust for very small screens (menu etc. – not landing) */
+@media screen and (max-height: 700px) {
+  .onboarding-title {
+      margin-top: -45vh;
+  }
+  .landing-overlay .onboarding-title {
+      margin-top: 0 !important;
+  }
+}
+
+/* Description text styling (for welcome message) */
+#onboarding .description {
+    font-family: var(--font-family-primary);
+    font-size: 24px;
+    font-weight: 400;
+    text-align: center;
+    color: var(--Texts-textMain, #3A2E27);
+    margin: 0 0 20px 0;
+}
+
+/* Button styling */
+#onboarding .button {
+    width: 220px;
+    min-width: 104px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    background: var(--Button-primary, #514848);
+    box-shadow: 0px 4px 0px 0px var(--Button-shadow, #3d3636);
+    color: var(--Texts-textWhite, #FFFFFF);
+    text-align: center;
+    font-family: var(--font-family-primary);
+    font-size: 24px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 120%;
+    border: none;
+    cursor: pointer;
+    margin: 0;
+    align-self: center;
+}
+
+#howToPlay {
+  background-color: var(--background-alt);
+  background-image: none;
+}
+
+/* ==============================
+   Buttons (Scales for different screen sizes)
+   ============================== */
+.button, 
+.congrats-button {
+  color: var(--Texts-textWhite);
+  text-align: center;
+  font-family: var(--font-family-primary);
+  font-size: 24px;
+  font-style: normal;
+  font-weight: 700;
+  line-height: 120%;
+  background-color: var(--Button-primary);
+  border: none;
+  border-radius: 16px;
+  padding: 16px 32px;
+  min-width: 200px;
+  max-width: 280px;
+  height: auto;
+  min-height: 56px;
+  box-shadow: 0px 4px 0px 0px var(--Button-shadow);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  text-transform: none;
+}
+
+.button:hover {
+    transform: translateY(2px);
+    box-shadow: 0px 2px 0px 0px var(--Button-shadow);
+}
+
+.button:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+.back-button {
+  background-color: #BD3B00;
+  border: none;
+  border-radius: 12px;
+  padding: 10px 13px;
+  width: 53px;
+  height: 48px;
+  box-shadow: 0px 4px 0px 0px #962F00;
+  cursor: pointer;
+}
+
+/* ==============================
+   ONBOARDING OVERLAY STYLES
+============================== */
+
+/* ==============================
+   How to Play Overlay Styling
+   ============================== */
+#howToPlay header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px;
+  margin-top: 30px;
+}
+
+#howToPlay h1 {
+  font-family: var(--font-family-primary);
+  font-size: 27px;
+  color: #3A2E27;
+  text-align: center;
+  margin: 0;
+}
+
+/* ==============================
+   How to Play - Instructions Layout
+   ============================== */
+.how-to-play {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.instruction {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.instruction img {
+  margin-right: 16px;
+}
+
+.instruction p {
+  font-family: var(--font-family-primary);
+  font-size: 16px;
+  color: #3A2E27;
+  margin: 0;
+  align-items: left;
+}
+
+/* Footer (Ensures buttons remain on screen on all devices) */
+#howToPlay footer,
+#congrats footer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    bottom: 5vh; 
+    padding-bottom: 10px;
+}
+#congrats .congrats-button {
+    transform: translateY(-40px); 
+}
+
+/* ==============================
+   CONGRATULATIONS OVERLAY STYLES
+   ============================== */
+#congrats {
+    background-image: url('../assets/CongratsBG.png');
+    background-repeat: no-repeat;
+    background-position: center center;
+    background-size: cover;
+    display: none;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    height: 100vh; 
+    width: 100vw;
+    position: absolute;
+    top: 0;
+    left: 0;
+}
+
+.congrats-content {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start; 
+    align-items: center;
+    transform: translateY(0px);
+    flex-grow: 0; 
+}
+
+/* Congratulations Title */
+#congrats h1 {
+    font-family: var(--font-family-primary);
+    font-size: 50px;
+    color: #FCEFE1;
+    margin: 0px;
+}
+
+/* Congratulations Message */
+.congrats-message {
+    font-family: var(--font-family-primary);
+    font-size: 24px;
+    color: #FCEFE1;
+    margin: 10px 0 20px 0;
+}
+
+/* Ensuring buttons don't fall off the screen */
+#congrats footer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    position: absolute;
+    bottom: 5vh; /* Ensures visibility on smaller screens */
+    padding-bottom: 10px;
+}
+
+.congrats-badge {
+    width: 112px; 
+    height: auto;
+    margin-bottom: 0px; 
+    transform: translateY(-20px);
+}
+
+/* Hint window */
+#hint {
+  font-family: var(--font-family-primary);
+  background-color: #C14400;
+  border: 2px solid #FFFFFF;
+  border-radius: 12px;
+  color: #ffffff;
+  padding: 0.5rem;
+  text-align: center; 
+  position: absolute; 
+  top: 0px; 
+  left: 45%; 
+  right: 50%; 
+  translate: -50%; 
+  width: 75%; 
+  display: flex;
+}
+
+/* ==============================
+   Aframe UI Elements (Hidden)
+   ============================== */
+.a-enter-vr-button,
+.a-enter-ar-button {
+  display: none;
+}
+
+/* Aframe dialog formatting override */
+html body .a-dialog,
+html body .a-dialog-content {
+    font-family: var(--font-family-primary);
+    border-radius: 10px;
+    font-size: 4px;
+    font-weight: 400;
+    line-height: 19.2px;
+    background-color: #D64D1B;
+    color: #FFFFFF;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    max-width: 100%;
+    width: 100%;
+    height: 100%;
+    position: relative;
+    padding: 0 10%; 
+    box-sizing: border-box; 
+}
+
+html body .a-dialog-allow-button,
+html body .a-dialog-deny-button,
+html body .a-dialog-ok-button {
+    position: fixed;
+    bottom: 12%;
+    left: 10%;
+    font-family: var(--font-family-primary);
+    font-size: 24px;
+    font-weight: 400;
+    line-height: 20.88px;
+    letter-spacing: 0.03em;
+    padding: 0 16px;
+    background-color: #FFFFFF;
+    border: none;
+    border-radius: 4px;
+    color: #D64D1B;
+    cursor: pointer;
+    display: inline-block;
+    text-transform: uppercase;
+    width: 80%;
+    max-width: 327px;
+    height: 44px;
+    z-index: 10000;
+}
+
+/* ==============================
+   Landing page overrides (must win over generic onboarding)
+   ============================== */
+#onboarding.landing-overlay {
+  justify-content: flex-start;
+  align-items: center;
+  gap: 0;
+  min-height: 100vh;
+}
+@supports (height: 100dvh) {
+  #onboarding.landing-overlay {
+    min-height: 100dvh;
+  }
+}
+
+#onboarding.landing-overlay .onboarding-content {
+  margin-top: 0 !important;
+  margin-bottom: 0 !important;
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-start;
+  padding-top: 26vh;
+  padding-bottom: 0;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  max-width: none;
+}
+
+#onboarding.landing-overlay .onboarding-content #beginTrailButton {
+  margin-top: auto;
+  margin-bottom: 12vh;
+  align-self: center;
+}
+
+/* Landing title: Noto Sans Display Condensed Bold, left-aligned */
+#onboarding.landing-overlay #landingTitle {
+  font-family: var(--Title-Condensed-Font), sans-serif !important;
+  font-weight: 700;
+  font-stretch: condensed;
+  font-variation-settings: "wdth" 87.5, "wght" 700;
+  text-align: left;
+}
+
+/* ==============================
+   Utility Classes
+   ============================== */
+.hidden {
+  display: none;
+} 

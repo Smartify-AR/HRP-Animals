@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
+    <title>Animals at the Tower - Games</title>
+    
+    <!-- Resource Hints -->
+    <!-- Styles -->
+    <link rel="stylesheet" href="../styles/theme.css">
+    <link rel="stylesheet" href="../styles/style.css">
+    <link rel="stylesheet" href="../styles/menu.css">
+    <style>
+        .content-inner {
+            padding-top: 0;
+            justify-content: flex-start;
+        }
+        footer {
+            margin-bottom: 200px !important;
+        }
+
+        /* Orientation Warning Overlay */
+        .orientation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .orientation-content {
+            background-color: #FCF6EF;
+            border: 3px solid #E7D4A3;
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            max-width: 300px;
+            margin: 1rem;
+            box-shadow: 0px 4px 0px 0px #E7D4A3;
+        }
+
+        .orientation-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: rotateToPortrait 2.5s ease-in-out infinite;
+            transform-origin: 0 100%;
+            display: inline-block;
+        }
+
+        .orientation-content h2 {
+            color: #C14400;
+            font-family: var(--font-family-primary);
+            font-weight: 700;
+            font-size: 2rem;
+            margin: 0 0 1rem 0;
+        }
+
+        .orientation-content p {
+            color: #333;
+            font-size: 1.1rem;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        @keyframes rotateToPortrait {
+            0% { transform: rotate(-90deg); opacity: 1; }
+            40% { transform: rotate(0deg); opacity: 1; }
+            60% { transform: rotate(0deg); opacity: 1; }
+            70% { transform: rotate(0deg); opacity: 0; }
+            71% { transform: rotate(-90deg); opacity: 0; }
+            80% { transform: rotate(-90deg); opacity: 1; }
+            100% { transform: rotate(-90deg); opacity: 1; }
+        }
+
+        /* Hidden class for orientation overlay */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Disable scrolling */
+        body {
+            overflow: hidden;
+        }
+    </style>
+</head>
+<body>
+    <!-- Orientation Warning Overlay -->
+    <div id="orientationOverlay" class="orientation-overlay hidden">
+        <div class="orientation-content">
+            <div class="orientation-icon">📱</div>
+            <h2>Please Rotate Your Device</h2>
+            <p>Hold your device in portrait mode for the best experience</p>
+        </div>
+    </div>
+
+    <div class="menu-container">
+        <button class="settings-button" aria-label="Settings">
+            <img src="../assets/Settings.png" alt="Settings">
+        </button>
+
+        <button class="back-button" onclick="window.location.href='menu.html'" aria-label="Back to menu">
+            <img src="../assets/Arrow.png" alt="Back">
+        </button>
+
+        <div class="content-wrapper">
+            <div class="content-inner">
+                <h1 class="title">ANIMALS<br>EVERYWHERE!</h1>
+                
+                <h2 class="subtitle">CHOOSE YOUR ADVENTURE!</h2>
+                
+                <p class="description">Select a game to start your AR experience.</p>
+
+                <div class="button-container">
+                    <button class="main-button" onclick="window.location.href='sunflower-game.html'">
+                        Sunflower Game
+                    </button>
+
+                    <button class="main-button" onclick="window.location.href='walrus-game.html'">
+                        Walrus Game
+                    </button>
+
+                    <button class="main-button" onclick="window.location.href='anemone-game.html'">
+                        Anemone Game
+                    </button>
+
+                    <button class="main-button" onclick="window.location.href='photographer-game.html'">
+                        Proud Photographer
+                    </button>
+
+                    <button class="main-button" onclick="window.location.href='jellyfish-game.html'">
+                        Jellyfish Jumble
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <img src="../assets/svg/HRP_logo.svg" alt="HRP logo" class="footer-logo">
+        </footer>
+    </div>
+
+    <script>
+        // Orientation Detection
+        class OrientationManager {
+            constructor() {
+                this.orientationOverlay = document.getElementById('orientationOverlay');
+                
+                // Ensure overlay starts hidden
+                if (this.orientationOverlay) {
+                    this.orientationOverlay.classList.add('hidden');
+                }
+                
+                this.init();
+            }
+            
+            init() {
+                // Check initial orientation
+                this.checkOrientation();
+                
+                // Listen for orientation changes
+                window.addEventListener('orientationchange', () => {
+                    // Small delay to ensure the orientation change is complete
+                    setTimeout(() => this.checkOrientation(), 100);
+                });
+                
+                // Also listen for resize events as a backup
+                window.addEventListener('resize', () => {
+                    setTimeout(() => this.checkOrientation(), 100);
+                });
+            }
+            
+            checkOrientation() {
+                // Use screen orientation API if available, fallback to window dimensions
+                let isLandscape = false;
+                
+                if (screen.orientation) {
+                    // Use screen orientation API for more accurate detection
+                    isLandscape = screen.orientation.angle === 90 || screen.orientation.angle === 270;
+                } else {
+                    // Fallback to window dimensions with a small tolerance
+                    isLandscape = window.innerWidth > window.innerHeight + 50;
+                }
+                
+                if (isLandscape) {
+                    this.orientationOverlay.classList.remove('hidden');
+                } else {
+                    this.orientationOverlay.classList.add('hidden');
+                }
+            }
+        }
+
+        // Initialize orientation manager when page loads
+        document.addEventListener('DOMContentLoaded', () => {
+            new OrientationManager();
+        });
+    </script>
+</body>
+</html> 

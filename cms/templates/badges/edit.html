@@ -1,0 +1,86 @@
+{% extends "base.html" %}
+
+{% block title %}{% if badge.id %}Edit{% else %}Create{% endif %} Game Badge - CMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>{% if badge.id %}Edit Game Badge{% else %}Create New Game Badge{% endif %}</h1>
+        <a href="{{ url_for('badge.list') }}" class="btn btn-secondary mb-3">← Back to List</a>
+    </div>
+</div>
+
+<form method="POST" id="badge-form">
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Badge Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="id" class="form-label">Badge ID <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="id" name="id" 
+                               value="{{ badge.id or '' }}" required
+                               {% if badge.id %}readonly{% endif %}>
+                        <small class="form-text text-muted">Unique identifier (cannot be changed after creation)</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Badge Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               value="{{ badge.name or '' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="description" name="description" rows="3" required>{{ badge.description or '' }}</textarea>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="icon" class="form-label">Icon Path</label>
+                        <input type="text" class="form-control" id="icon" name="icon" 
+                               value="{{ badge.icon or '' }}" 
+                               placeholder="../../assets/badges/icons/example.svg">
+                        <small class="form-text text-muted">Path to badge icon image</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="gamePath" class="form-label">Game Path (optional)</label>
+                        <input type="text" class="form-control" id="gamePath" name="gamePath" 
+                               value="{{ badge.gamePath or '' }}" 
+                               placeholder="../../games/example/index.html">
+                        <small class="form-text text-muted">Path to associated game</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5>Actions</h5>
+                </div>
+                <div class="card-body">
+                    <button type="submit" class="btn btn-primary w-100 mb-2">
+                        {% if badge.id %}Update Badge{% else %}Create Badge{% endif %}
+                    </button>
+                    <a href="{{ url_for('badge.list') }}" class="btn btn-secondary w-100">Cancel</a>
+                </div>
+            </div>
+            
+            {% if badge.icon %}
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h5>Icon Preview</h5>
+                </div>
+                <div class="card-body text-center">
+                    <img src="{{ badge.icon }}" alt="Badge icon" class="badge-icon-preview">
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</form>
+{% endblock %}
+

@@ -1,0 +1,910 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
+    <title>Animals at the Tower - Map</title>
+    <link rel="stylesheet" href="../styles/theme.css">
+    <link rel="stylesheet" href="../styles/menu.css">
+    <link rel="stylesheet" href="../styles/settings.css">
+    <link rel="stylesheet" href="../styles/model-viewer.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Dynamic viewport height support */
+        @supports (height: 100dvh) {
+            body {
+                height: 100dvh;
+            }
+        }
+
+        /* Fix for mobile Safari */
+        @supports (-webkit-touch-callout: none) {
+            body {
+                min-height: -webkit-fill-available;
+            }
+        }
+
+        body {
+            background-color: var(--background) !important;
+            background-image: none !important;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .map-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            cursor: grab;
+        }
+
+        .map-container:active {
+            cursor: grabbing;
+        }
+
+        .map-image {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            pointer-events: none;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0px 4px 0px 0px var(--button-shadow);
+        }
+
+        .back-button:hover {
+            transform: translateY(2px);
+            box-shadow: 0px 2px 0px 0px var(--button-shadow);
+        }
+
+        .back-button:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        /* Orientation Warning Overlay */
+        .orientation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .orientation-content {
+            background-color: #FCF6EF;
+            border: 3px solid #E7D4A3;
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            max-width: 300px;
+            margin: 1rem;
+            box-shadow: 0px 4px 0px 0px #E7D4A3;
+        }
+
+        .orientation-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: rotateToPortrait 2.5s ease-in-out infinite;
+            transform-origin: 0 100%;
+            display: inline-block;
+        }
+
+        .orientation-content h2 {
+            color: #C14400;
+            font-family: var(--font-family-primary);
+            font-weight: 700;
+            font-size: 2rem;
+            margin: 0 0 1rem 0;
+        }
+
+        .orientation-content p {
+            color: #333;
+            font-size: 1.1rem;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        @keyframes rotateToPortrait {
+            0% { transform: rotate(-90deg); opacity: 1; }
+            40% { transform: rotate(0deg); opacity: 1; }
+            60% { transform: rotate(0deg); opacity: 1; }
+            70% { transform: rotate(0deg); opacity: 0; }
+            71% { transform: rotate(-90deg); opacity: 0; }
+            80% { transform: rotate(-90deg); opacity: 1; }
+            100% { transform: rotate(-90deg); opacity: 1; }
+        }
+
+        /* Hidden class for orientation overlay */
+        .hidden {
+            display: none !important;
+        }
+
+        .back-button img {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Settings Button */
+        .settings-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0px 4px 0px 0px var(--button-shadow);
+        }
+
+        .settings-button:hover {
+            transform: translateY(2px);
+            box-shadow: 0px 2px 0px 0px var(--button-shadow);
+        }
+
+        .settings-button:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .settings-button img {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Zoom Buttons (hidden) */
+        .zoom-btn {
+            display: none;
+            position: fixed;
+            right: 24px;
+            width: 45px;
+            height: 45px;
+            padding: 10px 13.333px;
+            justify-content: center;
+            align-items: center;
+            gap: 6.667px;
+            border-radius: 10px;
+            border: 1px solid #E7D4A3;
+            background: #FCEFE1;
+            box-shadow: 0 3px 0 0 #E7D4A3;
+            cursor: pointer;
+            z-index: 1000;
+            transition: all 0.2s ease;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-touch-callout: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        #zoomInBtn {
+            bottom: 146px; /* 20px (recenter bottom) + 48px (recenter height) + 20px (gap) + 45px (zoom out height) + 16px (gap) */
+        }
+
+        #zoomOutBtn {
+            bottom: 88px; /* 20px (recenter bottom) + 48px (recenter height) + 20px (gap) */
+        }
+
+        .zoom-btn:hover {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 0 #E7D4A3;
+        }
+
+        .zoom-btn:active {
+            transform: translateY(3px);
+            box-shadow: none;
+        }
+
+        .zoom-btn img {
+            width: 26px;
+            height: 26px;
+        }
+
+        /* Hotspot layer: positioned over map; pins at xPercent/yPercent from assets.json (hidden) */
+        .map-hotspots {
+            display: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+        .map-hotspots .hotspot-pin {
+            position: absolute;
+            width: 36px;
+            height: 36px;
+            margin-left: -18px;
+            margin-top: -18px;
+            background: var(--primary-color);
+            border: 3px solid white;
+            border-radius: 50%;
+            pointer-events: auto;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+        }
+        .map-hotspots .hotspot-pin:hover {
+            transform: scale(1.1);
+        }
+
+        .model-viewer-popup { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--background-alt); z-index: 2000; display: flex; flex-direction: column; overflow: hidden; transform: translateX(100%); transition: transform 0.3s ease-out; }
+        .model-viewer-popup.hidden { display: none !important; }
+        .model-viewer-popup.show { transform: translateX(0); display: flex; }
+        .model-viewer-header { position: relative; padding: 20px; display: flex; align-items: center; justify-content: center; min-height: 60px; z-index: 10; background: var(--button-bg); }
+        .model-viewer-back-button { position: absolute; left: 20px; top: 50%; transform: translateY(-50%); background: var(--primary-color); border: none; border-radius: 8px; width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; box-shadow: 0 4px 0 0 var(--button-shadow); }
+        .model-viewer-title { font-family: var(--font-family-primary); font-size: 1.25rem; font-weight: 700; text-align: center; color: var(--text-color); margin: 0; }
+        .model-viewer-ar-wrap { position: absolute; right: 20px; top: 50%; transform: translateY(-50%); }
+        .model-viewer-ar-button { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; background: var(--primary-color); border: none; border-radius: 8px; color: white; font-family: var(--font-family-primary); font-size: 16px; cursor: pointer; box-shadow: 0 4px 0 0 var(--button-shadow); }
+        .model-viewer-ar-hint { display: block; font-size: 11px; color: rgba(255,255,255,0.9); white-space: nowrap; }
+        .model-viewer-container { flex: 1; position: relative; min-height: 0; touch-action: manipulation; }
+    </style>
+</head>
+<body>
+    <button class="back-button" onclick="window.location.href='menu.html'" aria-label="Back to menu">
+        <img src="../assets/svg/arrow.svg" alt="Back">
+    </button>
+    
+    <button class="settings-button" id="settingsButton" aria-label="Settings">
+        <img src="../assets/Settings.png" alt="Settings">
+    </button>
+    
+    <!-- Zoom and Recenter Buttons -->
+    <button id="zoomInBtn" class="zoom-btn" aria-label="Zoom in">
+        <img src="../assets/Plus.svg" alt="Zoom in">
+    </button>
+    <button id="zoomOutBtn" class="zoom-btn" aria-label="Zoom out">
+        <img src="../assets/Minus.svg" alt="Zoom out">
+    </button>
+    
+    <!-- Orientation Warning Overlay -->
+    <div id="orientationOverlay" class="orientation-overlay hidden">
+        <div class="orientation-content">
+            <div class="orientation-icon">📱</div>
+            <h2>Please Rotate Your Device</h2>
+            <p>Hold your device in portrait mode for the best experience</p>
+        </div>
+    </div>
+
+    <!-- Instructions Overlay -->
+    <div id="instructionsOverlay" class="instructions-overlay hidden">
+        <div class="instructions-content">
+            <h2>HOW TO USE THE MAP</h2>
+            <ul>
+                <li><span>Pan and zoom the map with touch or mouse.</span></li>
+                <li><span>Tap a hotspot to view the 3D model and open in AR.</span></li>
+            </ul>
+            <button class="instructions-close" id="instructionsClose">Got it!</button>
+        </div>
+    </div>
+
+    <!-- Settings Overlay -->
+    <div class="settings-overlay" id="settingsOverlay">
+        <div class="settings-dialog">
+            <button class="close-button" aria-label="Close settings">
+                <img src="../assets/svg/close.svg" alt="Close">
+            </button>
+            <h2>Settings</h2>
+            <h3>Hello, <span id="userNickname">Guest</span>!</h3>
+            <div class="settings-controls">
+                <button id="hapticsToggle" class="settings-icon-button" aria-label="Toggle Haptics">
+                    <img src="../assets/Haptics.png" alt="Haptics" class="settings-icon-img">
+                </button>
+                <button id="audioToggle" class="settings-icon-button" aria-label="Toggle Audio">
+                    <img src="../assets/Unmute.png" alt="Sound" class="settings-icon-img">
+                </button>
+                <button id="musicToggle" class="settings-icon-button" aria-label="Toggle Music">
+                    <img src="../assets/Note.png" alt="Music" class="settings-icon-img">
+                </button>
+            </div>
+            <div class="settings-actions">
+                <button class="how-to-play-button">
+                    <span>?</span>
+                    How to play
+                </button>
+                <button type="button" class="sensor-permissions-button" id="sensorPermissionsButton" aria-label="Sensor permissions"><img src="../assets/Sensors.svg" alt="Permissions"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sensor permissions overlay -->
+    <div class="settings-overlay" id="sensorPermissionsOverlay">
+        <div class="settings-dialog">
+            <button class="close-button" aria-label="Close">
+                <img src="../assets/svg/close.svg" alt="Close">
+            </button>
+            <h2>Sensor permissions</h2>
+            <div class="sensor-permission-row">
+                <span class="sensor-permission-label">Camera</span>
+                <span class="sensor-permission-state" id="sensorStateCamera"><img src="" alt="" role="presentation"></span>
+                <button type="button" class="sensor-permission-request" id="sensorPermissionCamera" aria-label="Request access"><img src="../assets/PlayAgain.png" alt=""></button>
+            </div>
+            <div class="sensor-permission-row">
+                <span class="sensor-permission-label">Location (GPS)</span>
+                <span class="sensor-permission-state" id="sensorStateLocation"><img src="" alt="" role="presentation"></span>
+                <button type="button" class="sensor-permission-request" id="sensorPermissionLocation" aria-label="Request access"><img src="../assets/PlayAgain.png" alt=""></button>
+            </div>
+            <div class="sensor-permission-row">
+                <span class="sensor-permission-label">Device orientation</span>
+                <span class="sensor-permission-state" id="sensorStateMotion"><img src="" alt="" role="presentation"></span>
+                <button type="button" class="sensor-permission-request" id="sensorPermissionMotion" aria-label="Request access"><img src="../assets/PlayAgain.png" alt=""></button>
+            </div>
+        </div>
+    </div>
+
+    <div class="map-container" id="mapContainer">
+        <img src="../assets/Body.png" alt="Map" class="map-image" id="mapImage">
+        <div id="mapHotspots" class="map-hotspots" aria-hidden="true"></div>
+    </div>
+
+    <!-- Model viewer overlay: tap hotspot to view 3D model and AR -->
+    <div id="modelViewerOverlay" class="model-viewer-popup hidden">
+        <div class="model-viewer-header">
+            <button class="model-viewer-back-button" id="mapModelViewerClose" aria-label="Back">
+                <img src="../assets/svg/arrow.svg" alt="Back">
+            </button>
+            <h1 class="model-viewer-title" id="mapModelViewerTitle">3D MODEL</h1>
+            <div class="model-viewer-ar-wrap">
+                <button class="model-viewer-ar-button" id="mapModelViewerARButton" style="display: none;"><span>AR</span></button>
+                <span id="mapModelViewerARHint" class="model-viewer-ar-hint" style="display: none;">AR requires HTTPS</span>
+            </div>
+        </div>
+        <div id="mapModelViewerContainer" class="model-viewer-container"></div>
+        <div id="mapModelViewerSwipeTooltip" class="model-viewer-swipe-tooltip">Swipe and pinch to explore</div>
+    </div>
+
+    <script type="module" src="https://modelviewer.dev/node_modules/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <script src="../scripts/model-viewer.js"></script>
+    <script>
+        class InteractiveMap {
+            constructor() {
+                this.mapContainer = document.getElementById('mapContainer');
+                this.mapImage = document.getElementById('mapImage');
+                
+                // Map state
+                this.scale = 0.64;
+                this.minScale = 0.4;
+                this.maxScale = 1;
+                this.translateX = 0;
+                this.translateY = 0;
+                
+                // Animation state
+                this.targetScale = this.scale;
+                this.targetTranslateX = this.translateX;
+                this.targetTranslateY = this.translateY;
+                this.animationSpeed = 0.15; // Higher = faster animation
+                
+                // Touch/Drag state
+                this.isDragging = false;
+                this.lastTouchX = 0;
+                this.lastTouchY = 0;
+                this.lastTouchDistance = 0;
+                this.startTouchX = 0;
+                this.startTouchY = 0;
+                
+                this.init();
+                this.updateTransform(); // Ensure initial transform is applied
+                this.startAnimationLoop();
+            }
+            
+            init() {
+                // Mouse events
+                this.mapContainer.addEventListener('mousedown', this.handleMouseDown.bind(this));
+                document.addEventListener('mousemove', this.handleMouseMove.bind(this));
+                document.addEventListener('mouseup', this.handleMouseUp.bind(this));
+                this.mapContainer.addEventListener('wheel', this.handleWheel.bind(this));
+                
+                // Touch events
+                this.mapContainer.addEventListener('touchstart', this.handleTouchStart.bind(this), { passive: false });
+                this.mapContainer.addEventListener('touchmove', this.handleTouchMove.bind(this), { passive: false });
+                this.mapContainer.addEventListener('touchend', this.handleTouchEnd.bind(this), { passive: false });
+                
+                // Prevent context menu on long press
+                this.mapContainer.addEventListener('contextmenu', (e) => e.preventDefault());
+            }
+            
+            handleMouseDown(e) {
+                this.isDragging = true;
+                this.lastTouchX = e.clientX;
+                this.lastTouchY = e.clientY;
+                this.mapImage.classList.add('dragging');
+                e.preventDefault();
+            }
+            
+            handleMouseMove(e) {
+                if (!this.isDragging) return;
+                
+                const deltaX = e.clientX - this.lastTouchX;
+                const deltaY = e.clientY - this.lastTouchY;
+                
+                this.targetTranslateX += deltaX;
+                this.targetTranslateY += deltaY;
+                
+                this.lastTouchX = e.clientX;
+                this.lastTouchY = e.clientY;
+                
+                e.preventDefault();
+            }
+            
+            handleMouseUp(e) {
+                this.isDragging = false;
+                this.mapImage.classList.remove('dragging');
+            }
+            
+            handleWheel(e) {
+                e.preventDefault();
+                
+                const delta = e.deltaY > 0 ? -0.1 : 0.1;
+                const newScale = Math.max(this.minScale, Math.min(this.maxScale, this.targetScale + delta));
+                
+                if (newScale !== this.targetScale) {
+                    // Calculate zoom point relative to image center
+                    const rect = this.mapContainer.getBoundingClientRect();
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    const mouseX = e.clientX - rect.left;
+                    const mouseY = e.clientY - rect.top;
+                    
+                    // Adjust translation to zoom towards mouse position
+                    const scaleDiff = newScale - this.targetScale;
+                    this.targetTranslateX -= (mouseX - centerX) * scaleDiff;
+                    this.targetTranslateY -= (mouseY - centerY) * scaleDiff;
+                    
+                    this.targetScale = newScale;
+                }
+            }
+            
+            // Programmatic zoom method for button controls
+            zoom(delta) {
+                const newScale = Math.max(this.minScale, Math.min(this.maxScale, this.targetScale + delta));
+                
+                if (newScale !== this.targetScale) {
+                    const rect = this.mapContainer.getBoundingClientRect();
+                    const centerX = rect.width / 2;
+                    const centerY = rect.height / 2;
+                    
+                    // Use center of map for zoom
+                    const scaleDiff = newScale - this.targetScale;
+                    this.targetTranslateX -= (rect.width / 2 - centerX) * scaleDiff;
+                    this.targetTranslateY -= (rect.height / 2 - centerY) * scaleDiff;
+                    
+                    this.targetScale = newScale;
+                }
+            }
+            
+            handleTouchStart(e) {
+                if (e.touches.length === 1) {
+                    // Single touch - drag
+                    this.isDragging = true;
+                    this.lastTouchX = e.touches[0].clientX;
+                    this.lastTouchY = e.touches[0].clientY;
+                    this.mapImage.classList.add('dragging');
+                } else if (e.touches.length === 2) {
+                    // Two touches - pinch zoom
+                    this.isDragging = false;
+                    this.mapImage.classList.remove('dragging');
+                    
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    
+                    this.lastTouchDistance = Math.sqrt(
+                        Math.pow(touch2.clientX - touch1.clientX, 2) + 
+                        Math.pow(touch2.clientY - touch1.clientY, 2)
+                    );
+                    
+                    this.startTouchX = (touch1.clientX + touch2.clientX) / 2;
+                    this.startTouchY = (touch1.clientY + touch2.clientY) / 2;
+                }
+                
+                e.preventDefault();
+            }
+            
+            handleTouchMove(e) {
+                if (e.touches.length === 1 && this.isDragging) {
+                    // Single touch drag
+                    const deltaX = e.touches[0].clientX - this.lastTouchX;
+                    const deltaY = e.touches[0].clientY - this.lastTouchY;
+                    
+                    this.targetTranslateX += deltaX;
+                    this.targetTranslateY += deltaY;
+                    
+                    this.lastTouchX = e.touches[0].clientX;
+                    this.lastTouchY = e.touches[0].clientY;
+                } else if (e.touches.length === 2) {
+                    // Two touch pinch zoom
+                    const touch1 = e.touches[0];
+                    const touch2 = e.touches[1];
+                    
+                    const currentDistance = Math.sqrt(
+                        Math.pow(touch2.clientX - touch1.clientX, 2) + 
+                        Math.pow(touch2.clientY - touch1.clientY, 2)
+                    );
+                    
+                    if (this.lastTouchDistance > 0) {
+                        const scaleChange = currentDistance / this.lastTouchDistance;
+                        const newScale = Math.max(this.minScale, Math.min(this.maxScale, this.targetScale * scaleChange));
+                        
+                        if (newScale !== this.targetScale) {
+                            // Calculate zoom center
+                            const rect = this.mapContainer.getBoundingClientRect();
+                            const centerX = rect.width / 2;
+                            const centerY = rect.height / 2;
+                            
+                            const touchCenterX = (touch1.clientX + touch2.clientX) / 2 - rect.left;
+                            const touchCenterY = (touch1.clientY + touch2.clientY) / 2 - rect.top;
+                            
+                            // Adjust translation to zoom towards touch center
+                            const scaleDiff = newScale - this.targetScale;
+                            this.targetTranslateX -= (touchCenterX - centerX) * scaleDiff;
+                            this.targetTranslateY -= (touchCenterY - centerY) * scaleDiff;
+                            
+                            this.targetScale = newScale;
+                        }
+                    }
+                    
+                    this.lastTouchDistance = currentDistance;
+                }
+                
+                e.preventDefault();
+            }
+            
+            handleTouchEnd(e) {
+                this.isDragging = false;
+                this.mapImage.classList.remove('dragging');
+                this.lastTouchDistance = 0;
+            }
+            
+            updateTransform() {
+                // Smooth interpolation towards target values
+                this.scale += (this.targetScale - this.scale) * this.animationSpeed;
+                this.translateX += (this.targetTranslateX - this.translateX) * this.animationSpeed;
+                this.translateY += (this.targetTranslateY - this.translateY) * this.animationSpeed;
+                
+                // Calculate boundaries based on current scale
+                const containerRect = this.mapContainer.getBoundingClientRect();
+                const imageRect = this.mapImage.getBoundingClientRect();
+                
+                // Calculate the scaled image dimensions
+                const scaledWidth = imageRect.width * this.scale;
+                const scaledHeight = imageRect.height * this.scale;
+                
+                // Calculate maximum translation to allow panning to image edges
+                const maxTranslateX = Math.max(0, (scaledWidth - containerRect.width) / 2 + 250);
+                const maxTranslateY = Math.max(0, (scaledHeight - containerRect.height) / 2 + 250);
+                
+                // Apply boundaries to target values
+                if (Math.abs(this.targetTranslateX) > maxTranslateX) {
+                    this.targetTranslateX = this.targetTranslateX > 0 ? maxTranslateX : -maxTranslateX;
+                }
+                
+                if (Math.abs(this.targetTranslateY) > maxTranslateY) {
+                    this.targetTranslateY = this.targetTranslateY > 0 ? maxTranslateY : -maxTranslateY;
+                }
+                
+                // Apply boundaries to current values
+                if (Math.abs(this.translateX) > maxTranslateX) {
+                    this.translateX = this.translateX > 0 ? maxTranslateX : -maxTranslateX;
+                }
+                
+                if (Math.abs(this.translateY) > maxTranslateY) {
+                    this.translateY = this.translateY > 0 ? maxTranslateY : -maxTranslateY;
+                }
+                
+                // Image fills screen via CSS (object-fit: cover); no transform applied
+                this.mapImage.style.transform = 'none';
+            }
+            
+            startAnimationLoop() {
+                const animate = () => {
+                    this.updateTransform();
+                    requestAnimationFrame(animate);
+                };
+                requestAnimationFrame(animate);
+            }
+            
+        }
+        
+        // Orientation Detection
+        class OrientationManager {
+            constructor() {
+                this.orientationOverlay = document.getElementById('orientationOverlay');
+                
+                // Ensure overlay starts hidden
+                if (this.orientationOverlay) {
+                    this.orientationOverlay.classList.add('hidden');
+                }
+                
+                this.init();
+            }
+            
+            init() {
+                // Check initial orientation
+                this.checkOrientation();
+                
+                // Listen for orientation changes
+                window.addEventListener('orientationchange', () => {
+                    // Small delay to ensure the orientation change is complete
+                    setTimeout(() => this.checkOrientation(), 100);
+                });
+                
+                // Also listen for resize events as a backup
+                window.addEventListener('resize', () => {
+                    setTimeout(() => this.checkOrientation(), 100);
+                });
+            }
+            
+            checkOrientation() {
+                // Multiple detection methods for better accuracy
+                let isLandscape = false;
+                
+                // Method 1: Screen orientation API (most accurate)
+                if (screen.orientation && typeof screen.orientation.angle === 'number') {
+                    isLandscape = screen.orientation.angle === 90 || screen.orientation.angle === 270;
+                }
+                // Method 2: Window dimensions with strict tolerance
+                else if (window.innerWidth > window.innerHeight + 100) {
+                    isLandscape = true;
+                }
+                // Method 3: Media query check
+                else if (window.matchMedia && window.matchMedia('(orientation: landscape)').matches) {
+                    isLandscape = true;
+                }
+                // Method 4: Fallback - only if width is significantly larger
+                else {
+                    isLandscape = window.innerWidth > window.innerHeight + 200;
+                }
+                
+                // Debug logging (remove in production)
+                console.log('Orientation check:', {
+                    screenAngle: screen.orientation ? screen.orientation.angle : 'N/A',
+                    windowSize: `${window.innerWidth}x${window.innerHeight}`,
+                    isLandscape: isLandscape
+                });
+                
+                if (isLandscape) {
+                    this.orientationOverlay.classList.remove('hidden');
+                } else {
+                    this.orientationOverlay.classList.add('hidden');
+                }
+            }
+        }
+
+        // Instructions overlay functions
+        function showInstructions() {
+            const instructionsOverlay = document.getElementById('instructionsOverlay');
+            if (instructionsOverlay) {
+                instructionsOverlay.classList.remove('hidden');
+            }
+        }
+
+        function hideInstructions() {
+            const instructionsOverlay = document.getElementById('instructionsOverlay');
+            if (instructionsOverlay) {
+                instructionsOverlay.classList.add('hidden');
+            }
+        }
+
+        let currentMapModelViewer = null;
+        let currentMapItem = null;
+
+        function normalizeAssetPath(path) {
+            if (!path) return '';
+            if (path.startsWith('http')) return path;
+            if (path.startsWith('../')) return path;
+            if (path.startsWith('../../')) return path.replace('../../', '../');
+            return '../' + path;
+        }
+
+        function toAbsoluteModelUrl(url) {
+            if (!url) return url;
+            try {
+                if (url.startsWith('http://') || url.startsWith('https://')) return url;
+                return new URL(url, window.location.href).href;
+            } catch (e) {
+                return url;
+            }
+        }
+
+        async function openMapModelViewer(item) {
+            if (!item || !item.model || !item.model.url) return;
+            const overlay = document.getElementById('modelViewerOverlay');
+            const container = document.getElementById('mapModelViewerContainer');
+            const titleEl = document.getElementById('mapModelViewerTitle');
+            const arBtn = document.getElementById('mapModelViewerARButton');
+            if (!overlay || !container) return;
+            currentMapItem = item;
+            if (titleEl) titleEl.textContent = item.name || '3D MODEL';
+            document.body.classList.add('model-viewer-open');
+            overlay.classList.remove('hidden');
+            overlay.classList.add('show');
+            const modelUrl = normalizeAssetPath(item.model.url);
+            const iosSrc = item.model.usdz ? normalizeAssetPath(item.model.usdz) : '';
+            const absoluteModelUrl = toAbsoluteModelUrl(modelUrl);
+            const absoluteIosSrc = iosSrc ? toAbsoluteModelUrl(iosSrc) : '';
+            if (currentMapModelViewer) currentMapModelViewer.destroy();
+            const isAndroid = /Android/i.test(navigator.userAgent);
+            const arModes = isAndroid ? 'webxr scene-viewer quick-look' : 'webxr scene-viewer quick-look';
+            const viewerOptions = {
+                container: container,
+                modelSrc: absoluteModelUrl,
+                backgroundColor: '#ffffff',
+                showControls: false,
+                showInstructions: false,
+                arModes: arModes,
+                arPlacementOffsetY: isAndroid ? 1 : 0
+            };
+            if (absoluteIosSrc) viewerOptions.iosSrc = absoluteIosSrc;
+            if (arBtn) arBtn.style.display = 'none';
+            const arHint = document.getElementById('mapModelViewerARHint');
+            if (arHint) arHint.style.display = window.isSecureContext ? 'none' : 'block';
+            if (typeof SmartifyModelViewer !== 'undefined') {
+                currentMapModelViewer = await SmartifyModelViewer.init(viewerOptions);
+                const viewer = currentMapModelViewer.getViewer();
+                if (viewer && arBtn) {
+                    viewer.addEventListener('ar-status', (e) => {
+                        if (e.detail.status === 'session-started') {
+                            arBtn.style.display = 'none';
+                        } else if (e.detail.status === 'not-presenting' || e.detail.status === 'session-ended' || e.detail.status === 'failed') {
+                            if (window.isSecureContext) arBtn.style.display = 'flex';
+                        } else if (window.isSecureContext && e.detail.available) {
+                            arBtn.style.display = 'flex';
+                        }
+                    });
+                    viewer.addEventListener('load', () => {
+                        if (window.isSecureContext) arBtn.style.display = 'flex';
+                    });
+                    if (window.isSecureContext && viewer.canActivateAR) arBtn.style.display = 'flex';
+                }
+            }
+        }
+
+        function closeMapModelViewer() {
+            const overlay = document.getElementById('modelViewerOverlay');
+            if (overlay) {
+                overlay.classList.remove('show');
+                overlay.classList.add('hidden');
+            }
+            document.body.classList.remove('model-viewer-open');
+            if (currentMapModelViewer) {
+                currentMapModelViewer.destroy();
+                currentMapModelViewer = null;
+            }
+            currentMapItem = null;
+        }
+
+        function launchMapAR() {
+            if (currentMapModelViewer && currentMapModelViewer.getViewer()) {
+                currentMapModelViewer.getViewer().activateAR();
+            }
+        }
+
+        // Initialize the interactive map and orientation manager when the page loads
+        document.addEventListener('DOMContentLoaded', async () => {
+            const mapInstance = new InteractiveMap();
+            new OrientationManager();
+
+            const hotspotContainer = document.getElementById('mapHotspots');
+            if (hotspotContainer) {
+                try {
+                    // Hotspots: each item in assets.json with mapHotspot { xPercent, yPercent } gets a tappable pin
+                    const res = await fetch('../data/assets.json', { cache: 'no-cache' });
+                    const cfg = await res.json();
+                    const items = Array.isArray(cfg.items) ? cfg.items : [];
+                    items.forEach((item) => {
+                        if (!item.mapHotspot || item.mapHotspot.xPercent == null || item.mapHotspot.yPercent == null) return;
+                        const pin = document.createElement('button');
+                        pin.type = 'button';
+                        pin.className = 'hotspot-pin';
+                        pin.setAttribute('aria-label', 'View ' + (item.name || 'model'));
+                        pin.style.left = item.mapHotspot.xPercent + '%';
+                        pin.style.top = item.mapHotspot.yPercent + '%';
+                        pin.addEventListener('click', (e) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            if (typeof triggerHaptic === 'function') triggerHaptic('single');
+                            openMapModelViewer(item);
+                        });
+                        hotspotContainer.appendChild(pin);
+                    });
+                } catch (err) {
+                    console.warn('Could not load hotspots from assets.json', err);
+                }
+            }
+
+            document.getElementById('mapModelViewerClose').addEventListener('click', closeMapModelViewer);
+            document.getElementById('mapModelViewerARButton').addEventListener('click', launchMapAR);
+            
+            // Setup zoom buttons
+            const zoomInBtn = document.getElementById('zoomInBtn');
+            const zoomOutBtn = document.getElementById('zoomOutBtn');
+            
+            if (zoomInBtn) {
+                zoomInBtn.addEventListener('click', () => {
+                    mapInstance.zoom(0.1);
+                });
+            }
+            
+            if (zoomOutBtn) {
+                zoomOutBtn.addEventListener('click', () => {
+                    mapInstance.zoom(-0.1);
+                });
+            }
+            
+            // Setup instructions close button
+            const instructionsClose = document.getElementById('instructionsClose');
+            if (instructionsClose) {
+                instructionsClose.addEventListener('click', hideInstructions);
+            }
+            
+            // Initialize settings module
+            if (typeof initSettings === 'function') {
+                initSettings({
+                    onHowToPlay: showInstructions,
+                    nicknameElementId: 'userNickname'
+                });
+            }
+            
+            // Setup settings button
+            const settingsButton = document.getElementById('settingsButton');
+            if (settingsButton && typeof showSettings === 'function') {
+                settingsButton.addEventListener('click', showSettings);
+            }
+            
+            // Ensure orientation overlay starts hidden
+            const orientationOverlay = document.getElementById('orientationOverlay');
+            if (orientationOverlay) {
+                orientationOverlay.classList.add('hidden');
+            }
+        });
+    </script>
+    <script src="../scripts/audio-manager-main.js"></script>
+    <script src="../scripts/settings.js"></script>
+</body>
+</html> 

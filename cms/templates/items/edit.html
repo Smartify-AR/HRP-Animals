@@ -1,0 +1,1340 @@
+{% extends "base.html" %}
+
+{% block title %}{% if item.id %}Edit{% else %}Create{% endif %} Item - CMS{% endblock %}
+
+{% block extra_head %}
+<script type="module" src="https://modelviewer.dev/node_modules/@google/model-viewer/dist/model-viewer.min.js"></script>
+<style>
+    .preview-section {
+        /* Remove sticky positioning - page scrolls as whole */
+    }
+    #previewContainer {
+        min-height: 400px;
+        padding: 20px;
+        border: 2px dashed #ddd;
+        border-radius: 8px;
+        background: #f9f9f9;
+        display: block !important;
+        width: 100% !important;
+        box-sizing: border-box;
+        visibility: visible !important;
+        opacity: 1 !important;
+        /* Remove overflow-y: auto - let page scroll naturally */
+    }
+    .preview-container:empty::before {
+        content: "Asset previews will appear here as you enter paths";
+        display: block;
+        text-align: center;
+        color: #999;
+        padding: 40px 20px;
+        font-style: italic;
+    }
+    .preview-item {
+        margin-bottom: 20px;
+        padding: 15px;
+        background: white;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        min-height: 100px;
+        display: block !important;
+        width: 100%;
+        box-sizing: border-box;
+        overflow: visible;
+    }
+    .preview-item h6 {
+        margin-bottom: 10px;
+        color: #333;
+        font-weight: 600;
+    }
+    .preview-image {
+        max-width: 100%;
+        max-height: 200px;
+        min-width: 100px;
+        min-height: 100px;
+        width: auto;
+        height: auto;
+        object-fit: contain;
+        border-radius: 4px;
+        display: block;
+        margin: 10px auto;
+        background: white;
+        padding: 10px;
+    }
+    .preview-image-container {
+        text-align: center;
+        padding: 10px;
+        min-height: 120px;
+        min-width: 100px;
+        display: flex !important;
+        align-items: center;
+        justify-content: center;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .preview-model-viewer {
+        width: 100%;
+        height: 400px;
+        border-radius: 4px;
+        background: #FCF6EF;
+    }
+    model-viewer {
+        width: 100%;
+        height: 400px;
+        background: #FCF6EF;
+        border-radius: 4px;
+    }
+    .preview-placeholder {
+        text-align: center;
+        color: #999;
+        padding: 40px 20px;
+        font-style: italic;
+    }
+    .model-viewer-container {
+        position: relative;
+    }
+    .model-controls {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        z-index: 10;
+    }
+    .model-controls button {
+        width: 40px;
+        height: 40px;
+        border-radius: 4px;
+        border: 1px solid #ddd;
+        background: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        transition: all 0.2s;
+    }
+    .model-controls button:hover {
+        background: #f0f0f0;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+    }
+    .model-controls button:active {
+        transform: scale(0.95);
+    }
+    .model-controls button svg {
+        width: 20px;
+        height: 20px;
+    }
+    .model-controls-row {
+        display: flex;
+        gap: 5px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>{% if item.id %}Edit Item{% else %}Create New Item{% endif %}</h1>
+        <a href="{{ url_for('item.list') }}" class="btn btn-secondary mb-3">← Back to List</a>
+    </div>
+</div>
+
+<form method="POST" id="item-form" enctype="multipart/form-data">
+    <div class="row">
+        <div class="col-md-6">
+            <!-- Basic Information -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Basic Information</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="id" class="form-label">Item ID <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="id" name="id" 
+                               value="{{ item.id or '' }}" required 
+                               {% if item.id %}readonly{% endif %}>
+                        <small class="form-text text-muted">Unique identifier (cannot be changed after creation)</small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="name" name="name" 
+                               value="{{ item.name or '' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="scientificName" class="form-label">Scientific Name <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="scientificName" name="scientificName" 
+                               value="{{ item.scientificName or '' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="description" class="form-label">Description <span class="text-danger">*</span></label>
+                        <textarea class="form-control" id="description" name="description" rows="3" required>{{ item.description or '' }}</textarea>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- 3D Model -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>3D Model</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">GLB Model</label>
+                        {% if item.model and item.model.url %}
+                        <div class="mb-2">
+                            <p class="mb-1"><strong>Current Model:</strong> <code>{{ item.model.url }}</code></p>
+                        </div>
+                        {% endif %}
+                        
+                        {% if available_models %}
+                        <div class="mb-3">
+                            <label for="model_select" class="form-label">Select Model</label>
+                            <select class="form-select" id="model_select" name="model_select">
+                                <option value="">-- No model selected --</option>
+                                {% for model in available_models %}
+                                <option value="{{ model.name }}" 
+                                        data-glb-path="{{ model.glb_path }}" 
+                                        data-usdz-path="{{ model.usdz_path or '' }}"
+                                        {% if item.model and item.model.url and model.glb_path == item.model.url %}selected{% endif %}>
+                                    {{ model.name }}{% if not model.usdz %} (Missing USDZ){% endif %}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">Select a model from the available 3D models</small>
+                        </div>
+                        {% else %}
+                        <p class="text-muted mb-2">No models available. Upload models first.</p>
+                        {% endif %}
+                        
+                        <div class="alert alert-info">
+                            <p class="mb-2"><strong>To upload a new 3D model:</strong></p>
+                            <p class="mb-2">Upload new 3D models (GLB/USDZ) via the upload page.</p>
+                            <a href="{{ url_for('upload.upload') }}" class="btn btn-primary btn-sm" target="_blank">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-box-arrow-up-right" viewBox="0 0 16 16" style="margin-right: 5px;">
+                                    <path fill-rule="evenodd" d="M8.636 3.5a.5.5 0 0 0-.5-.5H1.5A1.5 1.5 0 0 0 0 4.5v10A1.5 1.5 0 0 0 1.5 16h10a1.5 1.5 0 0 0 1.5-1.5V7.864a.5.5 0 0 0-1 0V14.5a.5.5 0 0 1-.5.5h-10a.5.5 0 0 1-.5-.5v-10a.5.5 0 0 1 .5-.5h6.636a.5.5 0 0 0 .5-.5z"/>
+                                    <path fill-rule="evenodd" d="M16 .5a.5.5 0 0 0-.5-.5h-5a.5.5 0 0 0 0 1h3.793L6.146 9.146a.5.5 0 1 0 .708.708L15 1.707V5.5a.5.5 0 0 0 1 0v-5z"/>
+                                </svg>
+                                Upload New Asset
+                            </a>
+                        </div>
+                        <input type="hidden" name="model_url_path" id="model_url_path" value="{{ item.model.url if item.model and item.model.url else '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">USDZ Model (optional)</label>
+                        {% if item.model and item.model.usdz %}
+                        <div class="mb-2">
+                            <p class="mb-1"><strong>Current USDZ:</strong> <code>{{ item.model.usdz }}</code></p>
+                        </div>
+                        {% else %}
+                        <p class="text-muted mb-2">No USDZ model assigned</p>
+                        {% endif %}
+                        <input type="hidden" name="model_usdz_path" id="model_usdz_path" value="{{ item.model.usdz if item.model and item.model.usdz else '' }}">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <label for="model_scale" class="form-label">Scale</label>
+                            {% set current_scale = item.model.scale if item.model else '1 1 1' %}
+                            {% set scale_value = current_scale.split()[0] if current_scale else '1' %}
+                            <input type="number" class="form-control" id="model_scale" name="model_scale" 
+                                   value="{{ scale_value }}" 
+                                   step="0.1" min="0.1" max="10"
+                                   placeholder="1.0">
+                            <small class="form-text text-muted">Unified scale for X, Y, and Z axes</small>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="model_rotation" class="form-label">Rotation (x y z)</label>
+                            <input type="text" class="form-control" id="model_rotation" name="model_rotation" 
+                                   value="{{ item.model.rotation if item.model else '0 0 0' }}" 
+                                   pattern="[0-9.]+ [0-9.]+ [0-9.]+" 
+                                   placeholder="0 0 0">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Location -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Location</h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <label for="lat" class="form-label">Latitude <span class="text-danger">*</span></label>
+                            <input type="number" step="any" class="form-control" id="lat" name="lat" 
+                                   value="{{ item.location.lat if item.location else '51.442' }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="lng" class="form-label">Longitude <span class="text-danger">*</span></label>
+                            <input type="number" step="any" class="form-control" id="lng" name="lng" 
+                                   value="{{ item.location.lng if item.location else '-0.063' }}" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="radiusMeters" class="form-label">Radius (meters) <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" id="radiusMeters" name="radiusMeters" 
+                                   value="{{ item.radiusMeters or 10 }}" min="1" required>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <a href="{{ url_for('map.index') }}" class="btn btn-sm btn-outline-primary" target="_blank">
+                            Set on Map →
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Icons -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Icons</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="icon_shadow" class="form-label">Shadow Icon</label>
+                        {% if item.icon and item.icon.shadow %}
+                        <div class="mb-2">
+                            <small class="text-muted">Current: <code>{{ item.icon.shadow }}</code></small>
+                        </div>
+                        {% endif %}
+                        <input type="file" class="form-control" id="icon_shadow" name="icon_shadow" 
+                               accept=".svg,.png,.jpg,.jpeg">
+                        <small class="form-text text-muted">Upload a new shadow icon to replace the current one</small>
+                        <input type="hidden" name="icon_shadow_path" value="{{ item.icon.shadow if item.icon else '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="icon_found" class="form-label">Found Icon</label>
+                        {% if item.icon and item.icon.found %}
+                        <div class="mb-2">
+                            <small class="text-muted">Current: <code>{{ item.icon.found }}</code></small>
+                        </div>
+                        {% endif %}
+                        <input type="file" class="form-control" id="icon_found" name="icon_found" 
+                               accept=".svg,.png,.jpg,.jpeg">
+                        <small class="form-text text-muted">Upload a new found icon to replace the current one</small>
+                        <input type="hidden" name="icon_found_path" value="{{ item.icon.found if item.icon else '' }}">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Badge -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Badge</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="badge_id" class="form-label">Badge ID</label>
+                        <input type="text" class="form-control" id="badge_id" name="badge_id" 
+                               value="{{ item.badge.id if item.badge else (item.id or '') }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="badge_name" class="form-label">Badge Name</label>
+                        <input type="text" class="form-control" id="badge_name" name="badge_name" 
+                               value="{{ item.badge.name if item.badge else '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="badge_icon" class="form-label">Badge Icon</label>
+                        {% if item.badge and item.badge.icon %}
+                        <div class="mb-2">
+                            <small class="text-muted">Current: <code>{{ item.badge.icon }}</code></small>
+                        </div>
+                        {% endif %}
+                        <input type="file" class="form-control" id="badge_icon" name="badge_icon" 
+                               accept=".svg,.png,.jpg,.jpeg">
+                        <small class="form-text text-muted">Upload a new badge icon to replace the current one</small>
+                        <input type="hidden" name="badge_icon_path" value="{{ item.badge.icon if item.badge and item.badge.icon else '' }}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="badge_description" class="form-label">Badge Description</label>
+                        <textarea class="form-control" id="badge_description" name="badge_description" rows="2">{{ item.badge.description if item.badge else '' }}</textarea>
+                    </div>
+                    <div class="mb-3">
+                        <label for="badge_gamePath" class="form-label">Game Path (optional)</label>
+                        <input type="text" class="form-control" id="badge_gamePath" name="badge_gamePath" 
+                               value="{{ item.badge.gamePath if item.badge and item.badge.gamePath else '' }}" 
+                               placeholder="../../games/example/index.html">
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Ping Settings -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5>Ping Settings</h5>
+                </div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label for="cooldownMinutes" class="form-label">Cooldown (minutes)</label>
+                        <input type="number" class="form-control" id="cooldownMinutes" name="cooldownMinutes" 
+                               value="{{ item.ping.cooldownMinutes if item.ping else 3 }}" min="0">
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-md-6">
+            <!-- Actions Panel (at top of preview) -->
+            <div class="card mb-3">
+                <div class="card-header">
+                    <h5 class="mb-0">Actions</h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <button type="button" class="btn btn-info" onclick="updatePreview()" id="updatePreviewBtn">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 5px;">
+                                <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                            </svg>
+                            Update Preview
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="saveBtn">
+                            {% if item.id %}Save Changes{% else %}Create Item{% endif %}
+                        </button>
+                        <a href="{{ url_for('item.list') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">Make changes on the left, then click "Update Preview" to see them reflected here.</small>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Preview Section -->
+            <div class="card mb-3 preview-section">
+                <div class="card-header">
+                    <h5 class="mb-0">Preview</h5>
+                </div>
+                <div class="card-body">
+                    <div class="preview-container" id="previewContainer">
+                        <div class="preview-placeholder">
+                            <p>Asset previews will appear here. Make changes on the left and click "Update Preview" to see them.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function convertAssetPath(relativePath) {
+    if (!relativePath) return '';
+    
+    // Convert relative paths like ../../assets/... to /assets/...
+    if (relativePath.startsWith('../../assets/')) {
+        return relativePath.replace('../../assets/', '/assets/');
+    }
+    // Handle ../assets/ (one level up)
+    if (relativePath.startsWith('../assets/')) {
+        return relativePath.replace('../assets/', '/assets/');
+    }
+    // If already absolute, return as is
+    if (relativePath.startsWith('/')) {
+        return relativePath;
+    }
+    // If it contains 'assets/' but doesn't start with /, try to make it absolute
+    if (relativePath.includes('assets/')) {
+        const parts = relativePath.split('assets/');
+        if (parts.length > 1) {
+            return '/assets/' + parts[parts.length - 1];
+        }
+    }
+    return relativePath;
+}
+
+function updatePreview() {
+    const previewContainer = document.getElementById('previewContainer');
+    if (!previewContainer) {
+        console.error('Preview container not found');
+        return;
+    }
+    
+    // Read from hidden path inputs (for existing assets)
+    // Note: We can't preview newly uploaded files directly (model-viewer needs server URLs),
+    // so we show existing assets and indicate when new files are selected
+    const shadowPathInput = document.querySelector('input[name="icon_shadow_path"]');
+    const foundPathInput = document.querySelector('input[name="icon_found_path"]');
+    const badgeIconPathInput = document.querySelector('input[name="badge_icon_path"]');
+    const modelUrlPathInput = document.querySelector('input[name="model_url_path"]');
+    const modelUsdzPathInput = document.querySelector('input[name="model_usdz_path"]');
+    
+    // Check if new files are selected (icons only - models must be uploaded via Asset Manager)
+    const shadowFileInput = document.getElementById('icon_shadow');
+    const foundFileInput = document.getElementById('icon_found');
+    const badgeFileInput = document.getElementById('badge_icon');
+    // Note: Model files are not handled - they must be uploaded via Asset Manager first
+    
+    // Use existing paths for preview
+    const shadowPath = shadowPathInput ? shadowPathInput.value.trim() : '';
+    const foundPath = foundPathInput ? foundPathInput.value.trim() : '';
+    const badgeIconPath = badgeIconPathInput ? badgeIconPathInput.value.trim() : '';
+    const modelUrl = modelUrlPathInput ? modelUrlPathInput.value.trim() : '';
+    const modelUsdz = modelUsdzPathInput ? modelUsdzPathInput.value.trim() : '';
+    
+    // Track if new files are selected (for display purposes) - icons only
+    const hasNewShadow = shadowFileInput && shadowFileInput.files && shadowFileInput.files[0];
+    const hasNewFound = foundFileInput && foundFileInput.files && foundFileInput.files[0];
+    const hasNewBadge = badgeFileInput && badgeFileInput.files && badgeFileInput.files[0];
+    // Models are not handled here
+    
+    console.log('Updating preview with paths:', {
+        shadow: shadowPath,
+        found: foundPath,
+        badge: badgeIconPath,
+        model: modelUrl
+    });
+    
+    // Get model scale and rotation
+    const modelScaleInput = document.getElementById('model_scale');
+    const modelRotationInput = document.getElementById('model_rotation');
+    const modelScaleValue = modelScaleInput ? parseFloat(modelScaleInput.value) || 1 : 1;
+    const modelRotation = modelRotationInput ? modelRotationInput.value.trim() : '0 0 0';
+    
+    // Convert unified scale to "x x x" format
+    const scaleStr = `${modelScaleValue} ${modelScaleValue} ${modelScaleValue}`;
+    const rotationParts = modelRotation.split(' ').map(r => parseFloat(r) || 0);
+    const rotationStr = rotationParts.map(r => r + 'deg').join(' ');
+    
+    let previewHTML = '';
+    
+    // 3D Model Preview (FIRST)
+    // Show existing model if available
+    if (modelUrl) {
+        const absolutePath = convertAssetPath(modelUrl);
+        const isGLB = modelUrl.toLowerCase().endsWith('.glb');
+        const isUSDZ = modelUrl.toLowerCase().endsWith('.usdz');
+        
+        if (isGLB || isUSDZ) {
+            const viewerId = 'preview-model-viewer-' + Date.now();
+            
+            // Show existing model
+            previewHTML += `
+                <div class="preview-item">
+                    <h6>3D Model</h6>
+                    <div class="model-viewer-container">
+                        <model-viewer 
+                            id="${viewerId}"
+                            src="${absolutePath}" 
+                            alt="3D Model"
+                            autoplay
+                            camera-controls
+                            auto-rotate
+                            interaction-prompt="none"
+                            shadow-intensity="0.5"
+                            shadow-softness="1.0"
+                            exposure="1.0"
+                            background-color="#FCF6EF"
+                            camera-orbit="0deg 75deg 1.5m"
+                            camera-target="0m 0m 0m"
+                            style="width: 100%; height: 400px; background: #FCF6EF; border-radius: 4px;">
+                        </model-viewer>
+                        <div class="model-controls">
+                            <div class="model-controls-row">
+                                <button type="button" onclick="zoomIn('${viewerId}')" title="Zoom In">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"/>
+                                    </svg>
+                                </button>
+                                <button type="button" onclick="zoomOut('${viewerId}')" title="Zoom Out">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M4 8a.5.5 0 0 1 .5-.5h7a.5.5 0 0 1 0 1h-7A.5.5 0 0 1 4 8z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="model-controls-row">
+                                <button type="button" onclick="rotateLeft('${viewerId}')" title="Rotate Left">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-arrow-counterclockwise" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M8 3a5 5 0 1 1-4.546 2.914.5.5 0 0 0-.908-.417A6 6 0 1 0 8 2z"/>
+                                        <path d="M8 4.466V.534a.25.25 0 0 0-.41-.192L5.23 2.308a.25.25 0 0 0 0 .384l2.36 1.966A.25.25 0 0 0 8 4.466"/>
+                                    </svg>
+                                </button>
+                                <button type="button" onclick="rotateRight('${viewerId}')" title="Rotate Right">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M8 3a5 5 0 1 0 4.546 2.914.5.5 0 0 1 .908-.417A6 6 0 1 1 8 2v1z"/>
+                                        <path d="M8 4.466V.534a.25.25 0 0 1 .41-.192l2.36 1.966c.12.1.12.284 0 .384L8.41 4.658A.25.25 0 0 1 8 4.466z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="model-controls-row">
+                                <button type="button" onclick="panUp('${viewerId}')" title="Pan Up">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M8 15a.5.5 0 0 0 .5-.5V2.707l3.146 3.147a.5.5 0 0 0 .708-.708l-4-4a.5.5 0 0 0-.708 0l-4 4a.5.5 0 1 0 .708.708L7.5 2.707V14.5a.5.5 0 0 0 .5.5z"/>
+                                    </svg>
+                                </button>
+                                <button type="button" onclick="panDown('${viewerId}')" title="Pan Down">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M8 1a.5.5 0 0 1 .5.5v11.793l3.146-3.147a.5.5 0 0 1 .708.708l-4 4a.5.5 0 0 1-.708 0l-4-4a.5.5 0 0 1 .708-.708L7.5 13.293V1.5A.5.5 0 0 1 8 1z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="model-controls-row">
+                                <button type="button" onclick="panLeft('${viewerId}')" title="Pan Left">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M15 8a.5.5 0 0 0-.5-.5H2.707l3.147-3.146a.5.5 0 1 0-.708-.708l-4 4a.5.5 0 0 0 0 .708l4 4a.5.5 0 0 0 .708-.708L2.707 8.5H14.5A.5.5 0 0 0 15 8z"/>
+                                    </svg>
+                                </button>
+                                <button type="button" onclick="panRight('${viewerId}')" title="Pan Right">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                                        <path fill-rule="evenodd" d="M1 8a.5.5 0 0 1 .5-.5h11.793l-3.147-3.146a.5.5 0 0 1 .708-.708l4 4a.5.5 0 0 1 0 .708l-4 4a.5.5 0 0 1-.708-.708L13.293 8.5H1.5A.5.5 0 0 1 1 8z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                            <div class="model-controls-row">
+                                <button type="button" onclick="resetView('${viewerId}')" title="Reset View">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 16 16">
+                                        <path d="M11.534 7h3.932a.25.25 0 0 1 .192.41l-1.966 2.36a.25.25 0 0 1-.384 0l-1.966-2.36a.25.25 0 0 1 .192-.41zm-11 2h3.932a.25.25 0 0 0 .192-.41L2.692 6.23a.25.25 0 0 0-.384 0L.342 8.59A.25.25 0 0 0 .534 9z"/>
+                                        <path fill-rule="evenodd" d="M8 3c-1.552 0-2.94.707-3.857 1.818a.5.5 0 1 1-.771-.636A6.002 6.002 0 0 1 13.917 7H12.9A5.002 5.002 0 0 0 8 3zM3.1 9a5.002 5.002 0 0 0 8.757 2.182.5.5 0 1 1 .771.636A6.002 6.002 0 0 1 2.083 9H3.1z"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="mt-2">
+                        <small class="text-muted">Scale: ${scaleStr} | Rotation: ${modelRotation}</small>
+                    </div>
+                </div>
+            `;
+        } else {
+            previewHTML += `
+                <div class="preview-item">
+                    <h6>3D Model</h6>
+                    <p class="text-muted">Model URL must be a .glb or .usdz file</p>
+                </div>
+            `;
+        }
+    } else {
+        previewHTML += `
+            <div class="preview-item">
+                <h6>3D Model</h6>
+                <p class="text-muted">No model assigned. Upload a model via the upload page.</p>
+            </div>
+        `;
+    }
+    
+    // Found Icon Preview (SECOND)
+    if (foundPath) {
+        const absolutePath = convertAssetPath(foundPath);
+        previewHTML += `
+            <div class="preview-item">
+                <h6>Found Icon</h6>
+                <div class="preview-image-container">
+                    <img src="${absolutePath}" alt="Found Icon" class="preview-image"
+                         style="max-width: 200px; max-height: 200px; min-width: 100px; min-height: 100px; width: auto; height: auto; object-fit: contain;"
+                         onload="console.log('Found icon loaded:', this.src, 'Dimensions:', this.naturalWidth, 'x', this.naturalHeight); if (this.naturalWidth === 0 || this.naturalHeight === 0) { this.style.width = '200px'; this.style.height = '200px'; }"
+                         onerror="console.error('Found icon failed:', this.src); this.parentElement.innerHTML='<p class=\\'text-danger\\'>Failed to load image</p>'">
+                </div>
+            </div>
+        `;
+    }
+    
+    // Shadow Icon Preview (THIRD)
+    if (shadowPath) {
+        const absolutePath = convertAssetPath(shadowPath);
+        previewHTML += `
+            <div class="preview-item">
+                <h6>Shadow Icon</h6>
+                <div class="preview-image-container">
+                    <img src="${absolutePath}" alt="Shadow Icon" class="preview-image" 
+                         style="max-width: 200px; max-height: 200px; min-width: 100px; min-height: 100px; width: auto; height: auto; object-fit: contain;"
+                         onload="console.log('Shadow icon loaded:', this.src, 'Dimensions:', this.naturalWidth, 'x', this.naturalHeight); if (this.naturalWidth === 0 || this.naturalHeight === 0) { this.style.width = '200px'; this.style.height = '200px'; }"
+                         onerror="console.error('Shadow icon failed:', this.src); this.parentElement.innerHTML='<p class=\\'text-danger\\'>Failed to load image</p>'">
+                </div>
+            </div>
+        `;
+    }
+    
+    // Badge Icon Preview (FOURTH)
+    if (badgeIconPath) {
+        const absolutePath = convertAssetPath(badgeIconPath);
+        previewHTML += `
+            <div class="preview-item">
+                <h6>Badge Icon</h6>
+                <div class="preview-image-container">
+                    <img src="${absolutePath}" alt="Badge Icon" class="preview-image"
+                         style="max-width: 200px; max-height: 200px; min-width: 100px; min-height: 100px; width: auto; height: auto; object-fit: contain;"
+                         onload="console.log('Badge icon loaded:', this.src, 'Dimensions:', this.naturalWidth, 'x', this.naturalHeight); if (this.naturalWidth === 0 || this.naturalHeight === 0) { this.style.width = '200px'; this.style.height = '200px'; }"
+                         onerror="console.error('Badge icon failed:', this.src); this.parentElement.innerHTML='<p class=\\'text-danger\\'>Failed to load image</p>'">
+                </div>
+            </div>
+        `;
+    }
+    
+    // Clear container first
+    previewContainer.innerHTML = '';
+    
+    if (previewHTML === '') {
+        previewContainer.innerHTML = `
+            <div class="preview-placeholder">
+                <p>Asset previews will appear here as you enter paths</p>
+            </div>
+        `;
+        console.log('No preview content - all paths are empty');
+    } else {
+        previewContainer.innerHTML = previewHTML;
+        console.log('Preview HTML generated, length:', previewHTML.length);
+        console.log('Preview HTML:', previewHTML.substring(0, 500));
+        
+        // Force display of container
+        previewContainer.style.display = 'block';
+        previewContainer.style.visibility = 'visible';
+        previewContainer.style.opacity = '1';
+        
+        // Force a reflow
+        void previewContainer.offsetHeight;
+        
+        // Note: Model-viewer doesn't support direct scale/rotation transforms
+        // The scale and rotation values are shown in the preview text
+        // These transformations will be applied in the AR app itself
+        
+        // Wait a moment for images and model-viewer to load
+        setTimeout(() => {
+            // Set up auto-rotate pause on user interaction and initialize camera state
+            const modelViewers = previewContainer.querySelectorAll('model-viewer');
+            modelViewers.forEach(modelViewer => {
+                if (modelViewer && modelViewer.id) {
+                    // Initialize camera state tracking
+                    initCameraState(modelViewer.id);
+                    
+                    // Pause auto-rotate when user interacts with mouse/touch
+                    ['mousedown', 'touchstart', 'wheel'].forEach(eventType => {
+                        modelViewer.addEventListener(eventType, () => {
+                            pauseAutoRotate(modelViewer.id);
+                        });
+                    });
+                }
+            });
+            
+            const images = previewContainer.querySelectorAll('img');
+            console.log('Found', images.length, 'images in preview');
+            images.forEach((img, idx) => {
+                // Force display and ensure visibility
+                img.style.display = 'block';
+                img.style.visibility = 'visible';
+                img.style.opacity = '1';
+                
+                // Log image source for debugging
+                console.log(`Image ${idx + 1} src:`, img.src);
+                
+                // Add error handler if not already present
+                if (!img.hasAttribute('data-error-handler')) {
+                    img.setAttribute('data-error-handler', 'true');
+                    img.addEventListener('error', function() {
+                        console.error('Image failed to load:', this.src);
+                        const errorMsg = document.createElement('p');
+                        errorMsg.className = 'text-danger';
+                        errorMsg.textContent = 'Failed to load: ' + this.src;
+                        this.parentElement.appendChild(errorMsg);
+                    });
+                    img.addEventListener('load', function() {
+                        console.log('Image loaded successfully:', this.src, 'Dimensions:', this.naturalWidth, 'x', this.naturalHeight);
+                        // If image has zero dimensions (common with SVGs), set explicit size
+                        if (this.naturalWidth === 0 || this.naturalHeight === 0) {
+                            this.style.width = '200px';
+                            this.style.height = '200px';
+                        }
+                    });
+                }
+            });
+            
+            // Log model transformations for reference
+            const modelViewersForLog = previewContainer.querySelectorAll('model-viewer');
+            modelViewersForLog.forEach(modelViewer => {
+                if (modelViewer) {
+                    const modelScaleInput = document.getElementById('model_scale');
+                    const modelRotationInput = document.getElementById('model_rotation');
+                    const modelScaleValue = modelScaleInput ? parseFloat(modelScaleInput.value) || 1 : 1;
+                    const modelScale = `${modelScaleValue} ${modelScaleValue} ${modelScaleValue}`;
+                    const modelRotation = modelRotationInput ? modelRotationInput.value.trim() : '0 0 0';
+                    console.log('Model transformations (applied in AR app):', { scale: modelScale, rotation: modelRotation });
+                }
+            });
+        }, 300);
+    }
+}
+
+// Auto-rotation pause management
+const autoRotateTimers = {};
+
+// Track camera state for each viewer
+const cameraState = {};
+
+function pauseAutoRotate(viewerId) {
+    const viewer = document.getElementById(viewerId);
+    if (viewer) {
+        // Disable auto-rotate
+        viewer.removeAttribute('auto-rotate');
+        
+        // Clear any existing timer for this viewer
+        if (autoRotateTimers[viewerId]) {
+            clearTimeout(autoRotateTimers[viewerId]);
+        }
+        
+        // Re-enable auto-rotate after 20 seconds
+        autoRotateTimers[viewerId] = setTimeout(() => {
+            viewer.setAttribute('auto-rotate', '');
+            delete autoRotateTimers[viewerId];
+        }, 20000);
+    }
+}
+
+// Initialize camera state tracking for a viewer
+function initCameraState(viewerId) {
+    const viewer = document.getElementById(viewerId);
+    if (!viewer) return;
+    
+    // Initialize state from current attribute (in degrees)
+    const currentOrbit = viewer.getAttribute('camera-orbit') || '0deg 75deg 1.5m';
+    const parts = currentOrbit.match(/([\d.-]+)deg\s+([\d.-]+)deg\s+([\d.]+)m/);
+    if (parts && parts.length >= 4) {
+        // Store in radians (to match getCameraOrbit() format)
+        cameraState[viewerId] = {
+            theta: (parseFloat(parts[1]) || 0) * (Math.PI / 180),
+            phi: (parseFloat(parts[2]) || 75) * (Math.PI / 180),
+            radius: parseFloat(parts[3]) || 1.5
+        };
+    } else {
+        cameraState[viewerId] = { theta: 0, phi: 75 * (Math.PI / 180), radius: 1.5 };
+    }
+    
+    // Update state when camera changes (user interaction or programmatic change)
+    // Use a debounced update to avoid too many updates
+    let updateTimeout;
+    const updateState = () => {
+        clearTimeout(updateTimeout);
+        updateTimeout = setTimeout(() => {
+            try {
+                const orbit = viewer.getCameraOrbit();
+                if (orbit && typeof orbit.theta !== 'undefined') {
+                    // getCameraOrbit() returns values in RADIANS - store as-is
+                    cameraState[viewerId] = {
+                        theta: parseFloat(orbit.theta) || 0,
+                        phi: parseFloat(orbit.phi) || 75 * (Math.PI / 180),
+                        radius: parseFloat(orbit.radius) || 1.5
+                    };
+                } else {
+                    // Fallback: parse from attribute (convert to radians)
+                    const currentOrbit = viewer.getAttribute('camera-orbit');
+                    if (currentOrbit) {
+                        const parts = currentOrbit.match(/([\d.-]+)deg\s+([\d.-]+)deg\s+([\d.]+)m/);
+                        if (parts && parts.length >= 4) {
+                            cameraState[viewerId] = {
+                                theta: (parseFloat(parts[1]) || 0) * (Math.PI / 180),
+                                phi: (parseFloat(parts[2]) || 75) * (Math.PI / 180),
+                                radius: parseFloat(parts[3]) || 1.5
+                            };
+                        }
+                    }
+                }
+            } catch (e) {
+                // If getCameraOrbit fails, try to parse from attribute (convert to radians)
+                const currentOrbit = viewer.getAttribute('camera-orbit');
+                if (currentOrbit) {
+                    const parts = currentOrbit.match(/([\d.-]+)deg\s+([\d.-]+)deg\s+([\d.]+)m/);
+                    if (parts && parts.length >= 4) {
+                        cameraState[viewerId] = {
+                            theta: (parseFloat(parts[1]) || 0) * (Math.PI / 180),
+                            phi: (parseFloat(parts[2]) || 75) * (Math.PI / 180),
+                            radius: parseFloat(parts[3]) || 1.5
+                        };
+                    }
+                }
+            }
+        }, 50); // Small delay to ensure state is updated
+    };
+    
+    // Listen to camera-change events
+    viewer.addEventListener('camera-change', updateState);
+    
+    // Also update on user interaction events
+    ['mousedown', 'touchstart', 'wheel'].forEach(eventType => {
+        viewer.addEventListener(eventType, updateState);
+    });
+}
+
+// Model viewer control functions
+function zoomIn(viewerId) {
+    const viewer = document.getElementById(viewerId);
+    if (!viewer) return;
+    
+    pauseAutoRotate(viewerId);
+    
+    // Read current orbit directly from viewer - MUST get current state, not initial
+    // NOTE: getCameraOrbit() returns values in RADIANS, not degrees!
+    let currentTheta, currentPhi, currentRadius;
+    
+    // Try to get from tracked state first (updated by camera-change events)
+    if (cameraState[viewerId]) {
+        // Convert radians to degrees
+        currentTheta = (cameraState[viewerId].theta || 0) * (180 / Math.PI);
+        currentPhi = (cameraState[viewerId].phi || 75) * (180 / Math.PI);
+        currentRadius = cameraState[viewerId].radius || 1.5;
+    } else {
+        // Try API
+        try {
+            const orbit = viewer.getCameraOrbit();
+            if (orbit && typeof orbit.theta !== 'undefined' && typeof orbit.phi !== 'undefined' && typeof orbit.radius !== 'undefined') {
+                // Convert radians to degrees
+                currentTheta = parseFloat(orbit.theta) * (180 / Math.PI) || 0;
+                currentPhi = parseFloat(orbit.phi) * (180 / Math.PI) || 75;
+                currentRadius = parseFloat(orbit.radius) || 1.5;
+            } else {
+                throw new Error('Invalid orbit object');
+            }
+        } catch (e) {
+            // Last resort: read from attribute (already in degrees)
+            const currentOrbit = viewer.getAttribute('camera-orbit') || '0deg 75deg 1.5m';
+            const parts = currentOrbit.match(/([\d.-]+)deg\s+([\d.-]+)deg\s+([\d.]+)m/);
+            if (!parts || parts.length < 4) return;
+            currentTheta = parseFloat(parts[1]) || 0;
+            currentPhi = parseFloat(parts[2]) || 75;
+            currentRadius = parseFloat(parts[3]) || 1.5;
+        }
+    }
+    
+    // Decrease radius (zoom in) - preserve theta and phi
+    const newRadius = Math.max(currentRadius * 0.8, 0.1);
+    viewer.cameraOrbit = `${currentTheta}deg ${currentPhi}deg ${newRadius}m`;
+    
+    // Update tracked state
+    if (cameraState[viewerId]) {
+        cameraState[viewerId].radius = newRadius;
+    }
+}
+
+function zoomOut(viewerId) {
+    const viewer = document.getElementById(viewerId);
+    if (!viewer) return;
+    
+    pauseAutoRotate(viewerId);
+    
+    // Read current orbit directly from viewer - MUST get current state, not initial
+    // NOTE: getCameraOrbit() returns values in RADIANS, not degrees!
+    let currentTheta, currentPhi, currentRadius;
+    
+    // Try to get from tracked state first (updated by camera-change events)
+    if (cameraState[viewerId]) {
+        // Convert radians to degrees
+        currentTheta = (cameraState[viewerId].theta || 0) * (180 / Math.PI);
+        currentPhi = (cameraState[viewerId].phi || 75) * (180 / Math.PI);
+        currentRadius = cameraState[viewerId].radius || 1.5;
+    } else {
+        // Try API
+        try {
+            const orbit = viewer.getCameraOrbit();
+            if (orbit && typeof orbit.theta !== 'undefined' && typeof orbit.phi !== 'undefined' && typeof orbit.radius !== 'undefined') {
+                // Convert radians to degrees
+                currentTheta = parseFloat(orbit.theta) * (180 / Math.PI) || 0;
+                currentPhi = parseFloat(orbit.phi) * (180 / Math.PI) || 75;
+                currentRadius = parseFloat(orbit.radius) || 1.5;
+            } else {
+                throw new Error('Invalid orbit object');
+            }
+        } catch (e) {
+            // Last resort: read from attribute (already in degrees)
+            const currentOrbit = viewer.getAttribute('camera-orbit') || '0deg 75deg 1.5m';
+            const parts = currentOrbit.match(/([\d.-]+)deg\s+([\d.-]+)deg\s+([\d.]+)m/);
+            if (!parts || parts.length < 4) return;
+            currentTheta = parseFloat(parts[1]) || 0;
+            currentPhi = parseFloat(parts[2]) || 75;
+            currentRadius = parseFloat(parts[3]) || 1.5;
+        }
+    }
+    
+    // Increase radius (zoom out) - preserve theta and phi
+    const newRadius = Math.min(currentRadius * 1.25, 10);
+    viewer.cameraOrbit = `${currentTheta}deg ${currentPhi}deg ${newRadius}m`;
+    
+    // Update tracked state
+    if (cameraState[viewerId]) {
+        cameraState[viewerId].radius = newRadius;
+    }
+}
+
+function rotateLeft(viewerId) {
+    const viewer = document.getElementById(viewerId);
+    if (!viewer) return;
+    
+    pauseAutoRotate(viewerId);
+    
+    // Read current orbit directly from viewer - MUST get current state, not initial
+    let currentTheta, currentPhi, currentRadius;
+    
+    // Try to get from tracked state first (updated by camera-change events)
+    // NOTE: getCameraOrbit() returns values in RADIANS, not degrees!
+    if (cameraState[viewerId]) {
+        // Convert radians to degrees
+        currentTheta = (cameraState[viewerId].theta || 0) * (180 / Math.PI);
+        currentPhi = (cameraState[viewerId].phi || 75) * (180 / Math.PI);
+        currentRadius = cameraState[viewerId].radius || 1.5;
+        console.log('Rotate Left: Using tracked state (converted from radians)', { theta: currentTheta, phi: currentPhi, radius: currentRadius });
+    } else {
+        // Try API
+        try {
+            const orbit = viewer.getCameraOrbit();
+            if (orbit && typeof orbit.theta !== 'undefined' && typeof orbit.phi !== 'undefined' && typeof orbit.radius !== 'undefined') {
+                // Convert radians to degrees
+                currentTheta = parseFloat(orbit.theta) * (180 / Math.PI) || 0;
+                currentPhi = parseFloat(orbit.phi) * (180 / Math.PI) || 75;
+                currentRadius = parseFloat(orbit.radius) || 1.5;
+                console.log('Rotate Left: Using getCameraOrbit() (converted from radians)', { theta: currentTheta, phi: currentPhi, radius: currentRadius });
+            } else {
+                throw new Error('Invalid orbit object');
+            }
+        } catch (e) {
+            // Last resort: read from attribute (already in degrees)
+            const currentOrbit = viewer.getAttribute('camera-orbit') || '0deg 75deg 1.5m';
+            const parts = currentOrbit.match(/([\d.-]+)deg\s+([\d.-]+)deg\s+([\d.]+)m/);
+            if (!parts || parts.length < 4) {
+                console.error('Rotate Left: Failed to parse orbit');
+                return;
+            }
+            currentTheta = parseFloat(parts[1]) || 0;
+            currentPhi = parseFloat(parts[2]) || 75;
+            currentRadius = parseFloat(parts[3]) || 1.5;
+            console.log('Rotate Left: Using attribute (already in degrees)', { theta: currentTheta, phi: currentPhi, radius: currentRadius });
+        }
+    }
+    
+    // Ensure we have valid numbers
+    if (isNaN(currentTheta)) currentTheta = 0;
+    if (isNaN(currentPhi)) currentPhi = 75;
+    if (isNaN(currentRadius)) currentRadius = 1.5;
+    
+    // Decrease theta by 15 degrees (rotate left/counter-clockwise)
+    const newTheta = currentTheta - 15;
+    // Normalize to 0-360 range
+    let normalizedTheta = newTheta;
+    while (normalizedTheta < 0) {
+        normalizedTheta = normalizedTheta + 360;
+    }
+    while (normalizedTheta >= 360) {
+        normalizedTheta = normalizedTheta - 360;
+    }
+    
+    console.log('Rotate Left: Before', { theta: currentTheta, phi: currentPhi, radius: currentRadius });
+    console.log('Rotate Left: After', { theta: normalizedTheta, phi: currentPhi, radius: currentRadius });
+    
+    // Update camera orbit - ONLY change theta, preserve phi and radius
+    viewer.cameraOrbit = `${normalizedTheta}deg ${currentPhi}deg ${currentRadius}m`;
+    
+    // Update tracked state
+    if (cameraState[viewerId]) {
+        cameraState[viewerId].theta = normalizedTheta;
+    }
+}
+
+function rotateRight(viewerId) {
+    const viewer = document.getElementById(viewerId);
+    if (!viewer) return;
+    
+    pauseAutoRotate(viewerId);
+    
+    // Read current orbit directly from viewer - MUST get current state, not initial
+    let currentTheta, currentPhi, currentRadius;
+    
+    // Try to get from tracked state first (updated by camera-change events)
+    // NOTE: getCameraOrbit() returns values in RADIANS, not degrees!
+    if (cameraState[viewerId]) {
+        // Convert radians to degrees
+        currentTheta = (cameraState[viewerId].theta || 0) * (180 / Math.PI);
+        currentPhi = (cameraState[viewerId].phi || 75) * (180 / Math.PI);
+        currentRadius = cameraState[viewerId].radius || 1.5;
+        console.log('Rotate Right: Using tracked state (converted from radians)', { theta: currentTheta, phi: currentPhi, radius: currentRadius });
+    } else {
+        // Try API
+        try {
+            const orbit = viewer.getCameraOrbit();
+            if (orbit && typeof orbit.theta !== 'undefined' && typeof orbit.phi !== 'undefined' && typeof orbit.radius !== 'undefined') {
+                // Convert radians to degrees
+                currentTheta = parseFloat(orbit.theta) * (180 / Math.PI) || 0;
+                currentPhi = parseFloat(orbit.phi) * (180 / Math.PI) || 75;
+                currentRadius = parseFloat(orbit.radius) || 1.5;
+                console.log('Rotate Right: Using getCameraOrbit() (converted from radians)', { theta: currentTheta, phi: currentPhi, radius: currentRadius });
+            } else {
+                throw new Error('Invalid orbit object');
+            }
+        } catch (e) {
+            // Last resort: read from attribute (already in degrees)
+            const currentOrbit = viewer.getAttribute('camera-orbit') || '0deg 75deg 1.5m';
+            const parts = currentOrbit.match(/([\d.-]+)deg\s+([\d.-]+)deg\s+([\d.]+)m/);
+            if (!parts || parts.length < 4) {
+                console.error('Rotate Right: Failed to parse orbit');
+                return;
+            }
+            currentTheta = parseFloat(parts[1]) || 0;
+            currentPhi = parseFloat(parts[2]) || 75;
+            currentRadius = parseFloat(parts[3]) || 1.5;
+            console.log('Rotate Right: Using attribute (already in degrees)', { theta: currentTheta, phi: currentPhi, radius: currentRadius });
+        }
+    }
+    
+    // Ensure we have valid numbers
+    if (isNaN(currentTheta)) currentTheta = 0;
+    if (isNaN(currentPhi)) currentPhi = 75;
+    if (isNaN(currentRadius)) currentRadius = 1.5;
+    
+    // Increase theta by 15 degrees (rotate right/clockwise)
+    const newTheta = currentTheta + 15;
+    // Normalize to 0-360 range
+    let normalizedTheta = newTheta;
+    while (normalizedTheta < 0) {
+        normalizedTheta = normalizedTheta + 360;
+    }
+    while (normalizedTheta >= 360) {
+        normalizedTheta = normalizedTheta - 360;
+    }
+    
+    console.log('Rotate Right: Before', { theta: currentTheta, phi: currentPhi, radius: currentRadius });
+    console.log('Rotate Right: After', { theta: normalizedTheta, phi: currentPhi, radius: currentRadius });
+    
+    // Update camera orbit - ONLY change theta, preserve phi and radius
+    viewer.cameraOrbit = `${normalizedTheta}deg ${currentPhi}deg ${currentRadius}m`;
+    
+    // Update tracked state
+    if (cameraState[viewerId]) {
+        cameraState[viewerId].theta = normalizedTheta;
+    }
+}
+
+function panUp(viewerId) {
+    const viewer = document.getElementById(viewerId);
+    if (viewer) {
+        pauseAutoRotate(viewerId);
+        const target = viewer.getCameraTarget();
+        const newY = parseFloat(target.y) + 0.1;
+        viewer.cameraTarget = `${target.x}m ${newY}m ${target.z}m`;
+    }
+}
+
+function panDown(viewerId) {
+    const viewer = document.getElementById(viewerId);
+    if (viewer) {
+        pauseAutoRotate(viewerId);
+        const target = viewer.getCameraTarget();
+        const newY = parseFloat(target.y) - 0.1;
+        viewer.cameraTarget = `${target.x}m ${newY}m ${target.z}m`;
+    }
+}
+
+function panLeft(viewerId) {
+    const viewer = document.getElementById(viewerId);
+    if (viewer) {
+        pauseAutoRotate(viewerId);
+        const target = viewer.getCameraTarget();
+        const newX = parseFloat(target.x) - 0.1;
+        viewer.cameraTarget = `${newX}m ${target.y}m ${target.z}m`;
+    }
+}
+
+function panRight(viewerId) {
+    const viewer = document.getElementById(viewerId);
+    if (viewer) {
+        pauseAutoRotate(viewerId);
+        const target = viewer.getCameraTarget();
+        const newX = parseFloat(target.x) + 0.1;
+        viewer.cameraTarget = `${newX}m ${target.y}m ${target.z}m`;
+    }
+}
+
+function resetView(viewerId) {
+    const viewer = document.getElementById(viewerId);
+    if (viewer) {
+        pauseAutoRotate(viewerId);
+        viewer.cameraOrbit = '0deg 75deg 1.5m';
+        viewer.cameraTarget = '0m 0m 0m';
+    }
+}
+
+// Update preview on input change (but don't auto-update - user clicks "Update Preview" button)
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('DOM loaded, setting up preview');
+    
+    // Don't auto-update on input - user must click "Update Preview" button
+    // This gives user control over when to see changes
+    
+    // Initial preview update
+    function runInitialPreview() {
+        console.log('Running initial preview update');
+        // Check for hidden path inputs (these always exist)
+        const shadowPathInput = document.querySelector('input[name="icon_shadow_path"]');
+        const foundPathInput = document.querySelector('input[name="icon_found_path"]');
+        const badgeIconPathInput = document.querySelector('input[name="badge_icon_path"]');
+        const modelUrlPathInput = document.querySelector('input[name="model_url_path"]');
+        
+        if (shadowPathInput && foundPathInput && badgeIconPathInput && modelUrlPathInput) {
+            console.log('All path inputs found, values:', {
+                shadow: shadowPathInput.value,
+                found: foundPathInput.value,
+                badge: badgeIconPathInput.value,
+                model: modelUrlPathInput.value
+            });
+            updatePreview();
+        } else {
+            console.warn('Some path inputs not found, retrying...');
+            setTimeout(runInitialPreview, 200);
+        }
+    }
+    
+    // Run initial preview after a short delay
+    setTimeout(runInitialPreview, 300);
+    
+    // Add event listeners to file inputs to update preview when files are selected
+    // Note: Model files are not handled here - they must be uploaded via Asset Manager
+    const fileInputs = ['icon_shadow', 'icon_found', 'badge_icon'];
+    fileInputs.forEach(inputId => {
+        const input = document.getElementById(inputId);
+        if (input) {
+            input.addEventListener('change', function() {
+                console.log(`File selected for ${inputId}:`, this.files[0] ? this.files[0].name : 'none');
+                // Preview will update when user clicks "Update Preview" button
+            });
+        }
+    });
+    
+    // Store available assets for auto-population
+    const availableAssets = {
+        shadows: {{ (available_shadows or []) | tojson }},
+        found: {{ (available_found or []) | tojson }},
+        badges: {{ (available_badges or []) | tojson }},
+        models: {{ (available_models or []) | tojson }}
+    };
+    const preSelectedModel = {{ (pre_selected_model | default('', true)) | tojson }};
+    
+    // Helper function to find matching asset by model name
+    function findMatchingAsset(modelName, assetList, suffix) {
+        if (!modelName || !assetList) return null;
+        
+        // Try with suffix first (e.g., peacock_shadow.svg)
+        const withSuffix = assetList.find(asset => {
+            const name = asset.name.toLowerCase();
+            const baseName = name.replace(/\.(svg|png|jpg|jpeg)$/i, '');
+            return baseName === `${modelName.toLowerCase()}_${suffix}`;
+        });
+        
+        if (withSuffix) return withSuffix.path;
+        
+        // For badges, also try without suffix (e.g., peacock.svg)
+        if (suffix === 'badge') {
+            const withoutSuffix = assetList.find(asset => {
+                const name = asset.name.toLowerCase();
+                const baseName = name.replace(/\.(svg|png|jpg|jpeg)$/i, '');
+                return baseName === modelName.toLowerCase();
+            });
+            if (withoutSuffix) return withoutSuffix.path;
+        }
+        
+        return null;
+    }
+    
+    // Helper function to find matching USDZ file by model name
+    function findMatchingUSDZ(modelName, modelList) {
+        if (!modelName || !modelList) return null;
+        
+        const matchingModel = modelList.find(model => {
+            return model.name.toLowerCase() === modelName.toLowerCase();
+        });
+        
+        if (matchingModel && matchingModel.usdz_path) {
+            return matchingModel.usdz_path;
+        }
+        
+        return null;
+    }
+    
+    // Handle model dropdown selection
+    const modelSelect = document.getElementById('model_select');
+    const modelUrlPathInput = document.getElementById('model_url_path');
+    const modelUsdzPathInput = document.getElementById('model_usdz_path');
+    const shadowPathInput = document.querySelector('input[name="icon_shadow_path"]');
+    const foundPathInput = document.querySelector('input[name="icon_found_path"]');
+    const badgeIconPathInput = document.querySelector('input[name="badge_icon_path"]');
+    
+    if (modelSelect && modelUrlPathInput && modelUsdzPathInput) {
+        modelSelect.addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            if (selectedOption && selectedOption.value) {
+                const modelName = selectedOption.value;
+                
+                // Update hidden inputs with selected model paths
+                const glbPath = selectedOption.getAttribute('data-glb-path');
+                const usdzPath = selectedOption.getAttribute('data-usdz-path') || '';
+                
+                if (glbPath) {
+                    modelUrlPathInput.value = glbPath;
+                    
+                    // Set USDZ from dropdown, or search for matching USDZ file
+                    if (usdzPath) {
+                        modelUsdzPathInput.value = usdzPath;
+                    } else {
+                        // Search for matching USDZ file if dropdown doesn't have one
+                        const matchingUsdz = findMatchingUSDZ(modelName, availableAssets.models);
+                        if (matchingUsdz) {
+                            modelUsdzPathInput.value = matchingUsdz;
+                            console.log('Auto-populated USDZ from matching file:', matchingUsdz);
+                        } else {
+                            modelUsdzPathInput.value = '';
+                        }
+                    }
+                    
+                    console.log('Model selected:', modelName, 'GLB:', glbPath, 'USDZ:', modelUsdzPathInput.value);
+                    
+                    // Auto-populate icons and badges if not already set and matching files exist
+                    if (shadowPathInput && !shadowPathInput.value) {
+                        const shadowPath = findMatchingAsset(modelName, availableAssets.shadows, 'shadow');
+                        if (shadowPath) {
+                            shadowPathInput.value = shadowPath;
+                            console.log('Auto-populated shadow icon:', shadowPath);
+                        }
+                    }
+                    
+                    if (foundPathInput && !foundPathInput.value) {
+                        const foundPath = findMatchingAsset(modelName, availableAssets.found, 'found');
+                        if (foundPath) {
+                            foundPathInput.value = foundPath;
+                            console.log('Auto-populated found icon:', foundPath);
+                        }
+                    }
+                    
+                    if (badgeIconPathInput && !badgeIconPathInput.value) {
+                        const badgePath = findMatchingAsset(modelName, availableAssets.badges, 'badge');
+                        if (badgePath) {
+                            badgeIconPathInput.value = badgePath;
+                            console.log('Auto-populated badge icon:', badgePath);
+                        }
+                    }
+                    
+                    // Update preview if it exists
+                    if (typeof updatePreview === 'function') {
+                        updatePreview();
+                    }
+                }
+            } else {
+                // No model selected - clear paths (but don't clear manually set icons/badges)
+                modelUrlPathInput.value = '';
+                modelUsdzPathInput.value = '';
+                console.log('Model selection cleared');
+                
+                // Update preview if it exists
+                if (typeof updatePreview === 'function') {
+                    updatePreview();
+                }
+            }
+        });
+    }
+    // Pre-select model when redirected from upload (e.g. ?model=base_name)
+    if (preSelectedModel && modelSelect) {
+        const option = Array.from(modelSelect.options).find(o => o.value === preSelectedModel);
+        if (option) {
+            modelSelect.value = preSelectedModel;
+            modelSelect.dispatchEvent(new Event('change'));
+        }
+    }
+});
+</script>
+{% endblock %}
+

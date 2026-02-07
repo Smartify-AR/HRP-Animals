@@ -1,0 +1,334 @@
+/* Shared Settings Styles */
+
+.settings-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+    justify-content: center;
+    align-items: center;
+}
+
+.settings-overlay.showing {
+    display: flex;
+}
+
+.settings-overlay.hiding {
+    display: flex;
+}
+
+.settings-dialog {
+    background: #FFFFFF;
+    border-radius: 24px;
+    padding: 40px;
+    position: relative;
+    width: 90%;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transform: translateX(100%);
+    transition: transform 0.3s ease-out;
+}
+
+.settings-overlay.showing .settings-dialog {
+    transform: translateX(0);
+}
+
+.settings-overlay.hiding .settings-dialog {
+    transform: translateX(100%);
+}
+
+.settings-dialog h2 {
+    font-family: var(--font-family-primary);
+    font-size: 48px;
+    font-weight: 700;
+    color: var(--text-color, #3A2E27);
+    margin-bottom: 20px;
+}
+
+.settings-dialog h3 {
+    font-family: var(--font-family-primary);
+    font-size: 24px;
+    color: var(--text-color, #3A2E27);
+    margin-bottom: 30px;
+}
+
+.close-button {
+    position: absolute;
+    top: 16px;
+    right: 16px;
+    background: var(--primary-color, #BD3B00);
+    border: none;
+    border-radius: 50%;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 12px;
+    box-shadow: 0 4px 0 0 var(--button-shadow, #962F00);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.close-button:hover {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 0 var(--button-shadow, #962F00);
+}
+
+.close-button:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+.close-button img {
+    width: 24px;
+    height: 24px;
+}
+
+.home-button {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    background: var(--primary-color, #BD3B00);
+    border: none;
+    border-radius: 12px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 12px;
+    box-shadow: 0 4px 0 0 var(--button-shadow, #962F00);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.home-button img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.home-button:hover {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 0 var(--button-shadow, #962F00);
+}
+
+.home-button:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+.settings-controls {
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    margin: 30px 0;
+    flex-wrap: wrap;
+}
+
+.settings-icon-button {
+    display: flex;
+    height: 56px;
+    padding: 12px 16px;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    border-radius: 12px;
+    border: 1px solid var(--UI-border, #E7D4A3);
+    background: var(--UI-buttonWhite, #FCEFE1);
+    box-shadow: 0 3px 0 0 #E7D4A3;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.settings-icon-button:hover {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 0 #E7D4A3;
+}
+
+.settings-icon-button:active {
+    transform: translateY(3px);
+    box-shadow: none;
+}
+
+.settings-icon-button.disabled {
+    opacity: 0.4;
+    filter: grayscale(100%);
+    background: #e0e0e0;
+    border-color: #999;
+}
+
+.settings-icon-img {
+    width: 32px;
+    height: 32px;
+    object-fit: contain;
+}
+
+.how-to-play-button {
+    background: var(--primary-color, #BD3B00);
+    color: var(--cream-text, #FCEFE1);
+    border: none;
+    border-radius: 12px;
+    padding: 12px 24px;
+    font-family: var(--font-family-primary);
+    font-size: 24px;
+    cursor: pointer;
+    box-shadow: 0px 4px 0px 0px var(--button-shadow, #962F00);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin: 0 auto;
+}
+
+.how-to-play-button:hover {
+    transform: translateY(2px);
+    box-shadow: 0px 2px 0px 0px var(--button-shadow, #962F00);
+}
+
+.how-to-play-button:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+/* Settings actions row: How to play + Permissions side by side */
+.settings-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.sensor-permissions-button {
+    background: var(--primary-color, #BD3B00);
+    border: none;
+    border-radius: 12px;
+    width: 48px;
+    height: 48px;
+    padding: 12px;
+    cursor: pointer;
+    box-shadow: 0 4px 0 0 var(--button-shadow, #962F00);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sensor-permissions-button img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.sensor-permissions-button:hover {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 0 var(--button-shadow, #962F00);
+}
+
+.sensor-permissions-button:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+/* Sensor permissions overlay (stacked above main settings) */
+#sensorPermissionsOverlay {
+    z-index: 1001;
+}
+
+#sensorPermissionsOverlay .settings-dialog {
+    max-width: 360px;
+}
+
+/* Smaller close button in sensor permissions overlay */
+#sensorPermissionsOverlay .close-button {
+    width: 32px;
+    height: 32px;
+    padding: 8px;
+    top: 12px;
+    right: 12px;
+}
+
+#sensorPermissionsOverlay .close-button img {
+    width: 16px;
+    height: 16px;
+}
+
+.sensor-permission-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 16px;
+    text-align: left;
+}
+
+.sensor-permission-row:last-of-type {
+    margin-bottom: 0;
+}
+
+.sensor-permission-label {
+    font-family: var(--font-family-primary);
+    font-size: 18px;
+    color: var(--text-color, #3A2E27);
+    flex: 1;
+}
+
+.sensor-permission-state {
+    min-width: 28px;
+    height: 28px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    text-align: right;
+}
+
+.sensor-permission-state img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.sensor-permission-request {
+    flex-shrink: 0;
+    width: 48px;
+    height: 48px;
+    padding: 12px;
+    border-radius: 12px;
+    background: var(--UI-buttonWhite, #FCEFE1);
+    border: 1px solid var(--UI-border, #E7D4A3);
+    box-shadow: 0 3px 0 0 #E7D4A3;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sensor-permission-request img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.sensor-permission-request:hover {
+    transform: translateY(1px);
+    box-shadow: 0 2px 0 0 #E7D4A3;
+}
+
+.sensor-permission-request:active {
+    transform: translateY(3px);
+    box-shadow: none;
+}
+
+.sensor-permission-request:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+

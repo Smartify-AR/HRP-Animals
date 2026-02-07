@@ -1,0 +1,146 @@
+/**
+ * Smartify Model Viewer Package Styles
+ * A lightweight 3D model viewer with AR functionality
+ * Adapted for Horniman Animals App
+ */
+
+/* Reset and base styles - use manipulation so pinch-zoom and pan work on Android */
+.smartify-viewer-container {
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  color: #3A2E27;
+  background: #FCF6EF;
+  font-family: var(--font-family-primary);
+  font-size: 15px;
+  line-height: 24px;
+  position: relative;
+  overflow: hidden;
+  touch-action: manipulation;
+}
+
+/* Model viewer styles - manipulation allows zoom/pan, prevents scroll */
+.smartify-model-viewer {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background-color: #FCF6EF;
+  touch-action: manipulation;
+  -webkit-overflow-scrolling: none;
+}
+
+/* Hide default AR button from model-viewer */
+.smartify-model-viewer::part(ar-button),
+.smartify-model-viewer::part(ar-button) > #default-ar-button,
+model-viewer::part(ar-button),
+model-viewer::part(ar-button) > #default-ar-button,
+model-viewer [slot="ar-button"],
+model-viewer #default-ar-button,
+.smartify-viewer-container model-viewer::part(ar-button),
+.smartify-viewer-container model-viewer [slot="ar-button"],
+.smartify-viewer-container #default-ar-button {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+/* Loading state */
+.smartify-viewer-container.loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.smartify-viewer-container.loading::before {
+  content: "Loading 3D Model...";
+  font-size: 18px;
+  color: #3A2E27;
+  font-family: var(--font-family-primary);
+}
+
+/* Error state */
+.smartify-viewer-container.error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #FCF6EF;
+}
+
+.smartify-viewer-container.error::before {
+  content: "Failed to load 3D model";
+  font-size: 18px;
+  color: #D64D1B;
+  text-align: center;
+  font-family: var(--font-family-primary);
+}
+
+/* AR button customization */
+.smartify-model-viewer::part(ar-button) {
+  background: #D64D1B;
+  border-radius: 8px;
+  color: white;
+  font-family: var(--font-family-primary);
+  font-weight: 400;
+  padding: 12px 24px;
+  border: none;
+  box-shadow: 0 2px 8px rgba(214, 77, 27, 0.3);
+  transition: all 0.2s ease;
+}
+
+.smartify-model-viewer::part(ar-button):hover {
+  background: #B83D15;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(214, 77, 27, 0.4);
+}
+
+.smartify-model-viewer::part(ar-button):active {
+  transform: translateY(0);
+  box-shadow: 0 2px 6px rgba(214, 77, 27, 0.3);
+}
+
+/* Animation for smooth transitions */
+.smartify-viewer-container {
+  transition: all 0.3s ease;
+}
+
+/* AR placement prompt: show when in AR session but object not yet placed (scan floor/surface) */
+.ar-placement-prompt {
+  display: none;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  padding: 16px 24px;
+  max-width: 280px;
+  background: rgba(0, 0, 0, 0.75);
+  color: #fff;
+  font-family: var(--font-family-primary);
+  font-size: 16px;
+  line-height: 1.4;
+  text-align: center;
+  border-radius: 12px;
+  pointer-events: none;
+  z-index: 10;
+  box-sizing: border-box;
+  animation: ar-prompt-pulse 2s ease-in-out infinite;
+}
+
+/* Show prompt only when AR session has started (user needs to find surface) */
+.smartify-model-viewer[ar-status="session-started"] .ar-placement-prompt,
+model-viewer[ar-status="session-started"] .ar-placement-prompt {
+  display: block;
+}
+
+/* Hide prompt once object is placed */
+.smartify-model-viewer[ar-status="object-placed"] .ar-placement-prompt,
+model-viewer[ar-status="object-placed"] .ar-placement-prompt,
+.smartify-model-viewer[ar-status="not-presenting"] .ar-placement-prompt,
+model-viewer[ar-status="not-presenting"] .ar-placement-prompt {
+  display: none !important;
+}
+
+@keyframes ar-prompt-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.85; }
+}
+

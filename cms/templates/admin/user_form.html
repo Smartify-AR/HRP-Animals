@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+
+{% block title %}{% if user %}Edit User{% else %}Add User{% endif %} - CMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>{% if user %}Edit User{% else %}Add User{% endif %}</h1>
+    </div>
+</div>
+
+<div class="row mt-4">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="username" class="form-label">Username <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="username" name="username" 
+                               value="{{ user.username if user else '' }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="password" class="form-label">
+                            Password {% if user %}<small class="text-muted">(leave blank to keep current)</small>{% else %}<span class="text-danger">*</span>{% endif %}
+                        </label>
+                        <input type="password" class="form-control" id="password" name="password" 
+                               {% if not user %}required{% endif %}>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="role" class="form-label">Role <span class="text-danger">*</span></label>
+                        <select class="form-select" id="role" name="role" required>
+                            {% for role in roles %}
+                            <option value="{{ role }}" {% if user and user.role == role %}selected{% endif %}>
+                                {{ role|title }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                        <small class="form-text text-muted">
+                            {% if user and user.id == current_user.id %}
+                                <span class="text-warning">You cannot remove admin access from your own account.</span>
+                            {% else %}
+                                Basic: View only | Editor: Add/Modify | Admin: Full control
+                            {% endif %}
+                        </small>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="is_active" name="is_active" 
+                                   {% if user and user.is_active or not user %}checked{% endif %}>
+                            <label class="form-check-label" for="is_active">
+                                Active Account
+                            </label>
+                        </div>
+                        <small class="form-text text-muted">Inactive users cannot log in.</small>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-primary">
+                            {% if user %}Update User{% else %}Create User{% endif %}
+                        </button>
+                        <a href="{{ url_for('admin.users') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Role Information</h5>
+            </div>
+            <div class="card-body">
+                <h6><span class="badge bg-secondary">Basic</span></h6>
+                <p class="small">Can view pages and details. Read-only access to content.</p>
+                
+                <h6><span class="badge bg-warning">Editor</span></h6>
+                <p class="small">Can add and modify content, upload assets. Cannot delete content or manage users.</p>
+                
+                <h6><span class="badge bg-danger">Admin</span></h6>
+                <p class="small">Full control including delete operations, user management, backups, and history.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

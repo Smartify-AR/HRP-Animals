@@ -1,0 +1,438 @@
+/* Theme variables are in theme.css – load that first. */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Dynamic viewport height support */
+@supports (height: 100dvh) {
+    body, .menu-container {
+        height: 100dvh;
+    }
+}
+
+/* Fix for mobile Safari */
+@supports (-webkit-touch-callout: none) {
+    body, .menu-container {
+        min-height: -webkit-fill-available;
+    }
+}
+
+body {
+    font-family: var(--font-family-primary);
+    background-color: var(--background-alt);
+    background-image: none;
+    min-height: 100vh;
+    color: var(--text-color);
+    position: relative;
+    overflow-x: hidden;
+}
+
+.menu-container {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+.content-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding: 20px 0;
+}
+
+.content-inner {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+    padding-top: 10vh;
+    padding-bottom: 0;
+    min-height: 0;
+}
+
+/* Wrapper for subtitle + description: takes remaining space and centers copy vertically */
+.menu-container .menu-copy {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 0;
+}
+
+.content-inner .button-container {
+    margin-top: auto;
+    flex-shrink: 0;
+    padding-bottom: 32px;
+}
+
+/* Title Section – Noto Sans Display Condensed Bold, reduced size */
+.title {
+    font-family: var(--Title-Condensed-Font), sans-serif;
+    font-size: 22px;
+    font-weight: 700;
+    font-stretch: condensed;
+    font-variation-settings: "wdth" 87.5, "wght" 700;
+    text-align: center;
+    line-height: 90%;
+    letter-spacing: 0px;
+    vertical-align: middle;
+    margin-bottom: 16px;
+    color: var(--text-color);
+}
+.title.display-title {
+    font-family: var(--Title-Condensed-Font), sans-serif;
+    font-size: clamp(20px, 5vw, 28px);
+    font-weight: 700;
+    font-stretch: condensed;
+    font-variation-settings: "wdth" 87.5, "wght" 700;
+    line-height: 110%;
+    letter-spacing: -0.5px;
+    text-transform: uppercase;
+}
+
+.subtitle {
+    font-family: var(--font-family-primary);
+    font-size: 20px;
+    font-weight: 600;
+    text-align: center;
+    line-height: 120%;
+    letter-spacing: 0px;
+    vertical-align: middle;
+    margin-bottom: 12px;
+    padding: 0 6px;
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.description {
+    font-family: var(--font-family-primary);
+    font-size: 15px;
+    font-weight: 400;
+    text-align: center;
+    line-height: 130%;
+    letter-spacing: 0px;
+    vertical-align: middle;
+    margin-bottom: 24px;
+    padding: 0 6px;
+    width: 100vw;
+    position: relative;
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+/* Button Container */
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 400px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.main-button, .secondary-button, .full-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-family: var(--font-family-primary);
+    font-weight: 400;
+    font-size: 24px;
+    padding: 12px 24px;
+    transition: all 0.2s ease;
+    text-transform: none;
+    box-shadow: 0px 4px 0px 0px var(--button-shadow);
+    text-align: center;
+}
+
+.main-button {
+    background: var(--primary-color);
+    color: var(--cream-text);
+    width: 100%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.main-button span {
+    flex: 1;
+    text-align: center;
+}
+
+.button-icon {
+    width: 80px;
+    height: 80px;
+    flex: 0 0 auto;
+    margin-right: 8px;
+}
+
+.button-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    width: 100%;
+}
+
+/* Map, Badges, Animals: white button with #514848 text */
+.secondary-button {
+    background: #FFFFFF;
+    color: #514848;
+    width: 100%;
+    box-shadow: 0px 2px 0px 0px rgba(81, 72, 72, 0.2);
+    border: 1px solid rgba(81, 72, 72, 0.15);
+}
+
+.full-button {
+    background: #FFFFFF;
+    color: #514848;
+    width: 100%;
+    box-shadow: 0px 2px 0px 0px rgba(81, 72, 72, 0.2);
+    border: 1px solid rgba(81, 72, 72, 0.15);
+}
+
+.secondary-button .button-icon,
+.full-button .button-icon {
+    filter: brightness(0);
+    opacity: 0.85;
+}
+
+/* Button Hover Effects */
+.main-button:hover {
+    transform: translateY(2px);
+    box-shadow: 0px 2px 0px 0px var(--button-shadow);
+}
+
+.secondary-button:hover,
+.full-button:hover {
+    transform: translateY(2px);
+    box-shadow: 0px 1px 0px 0px rgba(81, 72, 72, 0.25);
+}
+
+.main-button:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+.secondary-button:active,
+.full-button:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+/* Footer */
+footer {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 0 20px;
+    margin-bottom: 200px;
+}
+
+.footer-logo {
+    height: 30px;
+    width: auto;
+}
+
+/* Settings Button */
+.settings-button {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: var(--primary-color);
+    border: none;
+    border-radius: 12px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0px 4px 0px 0px var(--button-shadow);
+}
+
+.settings-button:hover {
+    transform: translateY(2px);
+    box-shadow: 0px 2px 0px 0px var(--button-shadow);
+}
+
+.settings-button:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+.settings-button img {
+    width: 24px;
+    height: 24px;
+}
+
+/* Back Button */
+.back-button {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    background: var(--primary-color);
+    border: none;
+    border-radius: 12px;
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    z-index: 10;
+    box-shadow: 0px 4px 0px 0px var(--button-shadow);
+}
+
+.back-button:hover {
+    transform: translateY(2px);
+    box-shadow: 0px 2px 0px 0px var(--button-shadow);
+}
+
+.back-button:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+.back-button img {
+    width: 24px;
+    height: 24px;
+}
+
+/* Responsive Design */
+@media (min-width: 768px) {
+    .subtitle {
+        padding: 0 10px;
+    }
+
+    .description {
+        padding: 0 10px;
+    }
+}
+
+@media (max-width: 360px) {
+    .subtitle,
+    .description {
+        padding: 0 6px;
+    }
+}
+
+/* Fix for taller screens to ensure footer visibility */
+@media (min-height: 700px) {
+    .menu-container {
+        justify-content: space-between;
+    }
+    
+    .content-wrapper {
+        margin-bottom: auto;
+    }
+    
+    footer {
+        position: relative;
+        bottom: 0;
+        margin-top: 40px;
+    }
+}
+
+/* Close button on menu instructions overlay */
+#instructionsOverlay .instructions-overlay-close {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    width: 32px;
+    height: 32px;
+    padding: 8px;
+    border: none;
+    border-radius: 50%;
+    background: var(--primary-color, #BD3B00);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 0 0 var(--button-shadow, #962F00);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+#instructionsOverlay .instructions-overlay-close img {
+    width: 16px;
+    height: 16px;
+    object-fit: contain;
+}
+
+#instructionsOverlay .instructions-overlay-close:hover {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 0 var(--button-shadow, #962F00);
+}
+
+#instructionsOverlay .instructions-overlay-close:active {
+    transform: translateY(4px);
+    box-shadow: none;
+}
+
+/* Menu instructions overlay: slide in/out from right (first-time popup) */
+#instructionsOverlay .instructions-content {
+    padding-top: 2.5rem;
+    transform: translateX(100%);
+    transition: transform 0.3s ease-out;
+}
+
+#instructionsOverlay.showing .instructions-content {
+    transform: translateX(0);
+}
+
+#instructionsOverlay.hiding .instructions-content {
+    transform: translateX(100%);
+}
+
+/* Grant Permissions button in instructions (icon + text) */
+.instructions-grant-button {
+    width: auto;
+    padding: 12px 20px;
+    background: var(--primary-color, #BD3B00);
+    color: var(--cream-text, #FCEFE1);
+    border: none;
+    border-radius: 12px;
+    font-family: var(--font-family-primary);
+    font-size: 18px;
+    font-weight: 400;
+    cursor: pointer;
+    box-shadow: 0 4px 0 0 var(--button-shadow, #962F00);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.instructions-grant-button img {
+    width: 24px;
+    height: 24px;
+    object-fit: contain;
+}
+
+.instructions-grant-button:hover {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 0 var(--button-shadow, #962F00);
+}
+
+.instructions-grant-button:active {
+    transform: translateY(4px);
+    box-shadow: none;
+} 

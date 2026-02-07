@@ -1,0 +1,71 @@
+/**
+ * Centralised theme – single source of truth for colours, fonts, and shadows.
+ * HRP Animals at the Tower. All pages must link theme.css first; do not add font links on individual pages.
+ */
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Noto+Sans+Display:wdth,wght@87.5,700&family=Poppins:wght@400;500;600;700&display=swap');
+
+:root {
+    /* Primary font for body and UI */
+    --font-family-primary: 'Poppins', sans-serif;
+    /* Display font for "ANIMALS AT THE TOWER" title (no Pirata – use Cinzel) */
+    --Display-Font-Family: "Cinzel", serif;
+    /* Button display font (ornate serif for "Begin trail") */
+    --Button-Display-Font: "Cinzel", serif;
+    /* "AT THE TOWER" line(s) – condensed bold */
+    --Title-Condensed-Font: "Noto Sans Display", sans-serif;
+
+    /* Text – app-wide (not on buttons) */
+    --text-color: #514848;
+    --text-color-secondary: #514848;
+
+    /* Backgrounds */
+    --background: #C0DCB2;
+    --background-alt: #F1DCB8;
+    --background-green: #C0DCB2;
+    --background-cream: #F1DCB8;
+
+    /* Buttons: background #514848, text white */
+    --primary-color: #514848;
+    --primary-color-hover: #3d3636;
+    --button-bg: #514848;
+    --button-text: #FFFFFF;
+    --button-shadow: #3d3636;
+
+    /* Accents */
+    --cream-text: #FFFFFF;
+    --cream-button-shadow: #cccccc;
+    --orange-text: #514848;
+    --accent-terracotta: #C84627;
+    --accent-navy: #243D5B;
+    --accent-sage: #A6B29A;
+    --cream-colour-guide: #EDE4D1;
+
+    /* Legacy names used by style.css / menu.css – map to theme */
+    --Texts-textMain: var(--text-color);
+    --Texts-textWhite: var(--cream-text);
+    --Button-primary: var(--primary-color);
+    --Button-shadow: var(--button-shadow);
+}
+
+/* Display title – "ANIMALS AT THE TOWER" (landing, menu) */
+.display-title {
+    color: #514848;
+    font-family: var(--Display-Font-Family);
+    font-size: 80px;
+    font-style: normal;
+    font-weight: 400;
+    line-height: 110%;
+    letter-spacing: -1.5px;
+    text-transform: uppercase;
+}
+
+@media (max-width: 480px) {
+    .display-title {
+        font-size: clamp(36px, 12vw, 56px);
+    }
+}
+
+/* Back button arrow points left (rotate 180° from default) – applied on all pages */
+.back-button img {
+    transform: rotate(180deg);
+}

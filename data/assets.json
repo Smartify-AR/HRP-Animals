@@ -1,0 +1,62 @@
+{
+  "items": [
+    {
+      "id": "item-lion",
+      "name": "Lion",
+      "scientificName": "Panthera leo",
+      "description": "Lions were among the most prized animals in the Royal Menagerie at the Tower of London. They were symbols of royal power and were kept in the Lion Tower, where visitors could view them. The first recorded lion at the Tower was given to King John in the early 13th century.",
+      "badgeDescription": "You discovered the Lion! A majestic symbol of the Royal Menagerie.",
+      "location": { "lat": 51.5081, "lng": -0.0759 },
+      "radiusMeters": 15,
+      "icon": { "shadow": "../../assets/Badge.png", "found": "../../assets/Badge.png" },
+      "cardImage": "../../assets/Badges/lion.png",
+      "model": {
+        "url": "../../assets/models/Lion_sm1.glb",
+        "usdz": "../../assets/models/Lion.usdz",
+        "scale": "1 1 1",
+        "rotation": "0 0 0"
+      },
+      "ping": { "cooldownMinutes": 3 },
+      "badge": {
+        "id": "badge-lion",
+        "name": "Lion",
+        "icon": "../../assets/Badge.png",
+        "description": "You discovered the Lion! A majestic symbol of the Royal Menagerie.",
+        "gamePath": ""
+      },
+      "place": "Tower of London",
+      "mapHotspot": { "xPercent": 30, "yPercent": 45 }
+    },
+    {
+      "id": "item-elephant",
+      "name": "Elephant",
+      "scientificName": "Elephas maximus",
+      "description": "The first elephant in England since Roman times was given to King Henry III in 1255 by King Louis IX of France. It was kept at the Tower of London and drew crowds of visitors. The elephant was later transferred to the care of the Sheriff of London.",
+      "badgeDescription": "You discovered the Elephant! The first elephant in England since Roman times.",
+      "location": { "lat": 51.5081, "lng": -0.0759 },
+      "radiusMeters": 15,
+      "icon": { "shadow": "../../assets/Badge.png", "found": "../../assets/Badge.png" },
+      "cardImage": "../../assets/Badges/elephant.png",
+      "model": {
+        "url": "../../assets/models/Elephant_sm1.glb",
+        "usdz": "../../assets/models/Elephant.usdz",
+        "scale": "1 1 1",
+        "rotation": "0 0 0"
+      },
+      "ping": { "cooldownMinutes": 3 },
+      "badge": {
+        "id": "badge-elephant",
+        "name": "Elephant",
+        "icon": "../../assets/Badge.png",
+        "description": "You discovered the Elephant! The first elephant in England since Roman times.",
+        "gamePath": ""
+      },
+      "place": "Tower of London",
+      "mapHotspot": { "xPercent": 55, "yPercent": 60 }
+    }
+  ],
+  "gameBadges": [
+    { "id": "game-badge-1", "name": "Game Champion", "description": "Add description for this game badge.", "icon": "../../assets/Badge.png", "gamePath": "../../games/sample/index.html" },
+    { "id": "streak", "name": "Streak Master", "description": "Earn this badge by playing three days in a row.", "icon": "../../assets/Badge.png" }
+  ]
+}

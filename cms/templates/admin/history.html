@@ -1,0 +1,50 @@
+{% extends "base.html" %}
+
+{% block title %}Change History - CMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Change History</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Recent Changes</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Timestamp</th>
+                                <th>User</th>
+                                <th>Action</th>
+                                <th>Entity Type</th>
+                                <th>Entity ID</th>
+                                <th>Changes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for change in changes %}
+                            <tr>
+                                <td>{{ change.timestamp.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td>{{ change.user.username }}</td>
+                                <td><span class="badge bg-primary">{{ change.action }}</span></td>
+                                <td>{{ change.entity_type }}</td>
+                                <td><code>{{ change.entity_id }}</code></td>
+                                <td>{{ change.changes or '-' }}</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

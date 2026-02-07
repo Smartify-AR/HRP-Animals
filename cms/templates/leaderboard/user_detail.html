@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block title %}User Details - CMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>User Details</h1>
+        <a href="{{ url_for('leaderboard.users') }}" class="btn btn-secondary mb-3">← Back to Users</a>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <p>{{ message }}</p>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h5>User ID: {{ user_id }}</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">User details will be displayed here once the backend API is integrated.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

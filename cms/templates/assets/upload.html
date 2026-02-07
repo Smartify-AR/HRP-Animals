@@ -1,0 +1,621 @@
+{% extends "base.html" %}
+
+{% block title %}Upload Asset - CMS{% endblock %}
+
+{% block extra_head %}
+<script type="module" src="https://modelviewer.dev/node_modules/@google/model-viewer/dist/model-viewer.min.js"></script>
+<style>
+    .preview-container {
+        min-height: 400px;
+    }
+    .preview-container.active {
+        /* Active state handled by content */
+    }
+    .preview-image {
+        max-width: 100%;
+        max-height: 400px;
+        object-fit: contain;
+        border-radius: 4px;
+    }
+    .preview-model-viewer {
+        width: 100%;
+        height: 500px;
+        border-radius: 4px;
+        background: #FCF6EF;
+    }
+    
+    model-viewer {
+        background: #FCF6EF;
+    }
+    .upload-section {
+        margin-bottom: 20px;
+    }
+    .preview-section {
+        margin-top: 30px;
+    }
+    .card {
+        height: 100%;
+    }
+    .card-body {
+        display: flex;
+        flex-direction: column;
+    }
+    .preview-container {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+    .model-requirements {
+        display: none;
+        margin-top: 20px;
+        padding: 15px;
+        background: #fff3cd;
+        border: 1px solid #ffc107;
+        border-radius: 4px;
+    }
+    .model-requirements.show {
+        display: block;
+    }
+    .file-group {
+        margin-bottom: 15px;
+    }
+    .file-group label {
+        font-weight: 600;
+    }
+    .required-badge {
+        color: #dc3545;
+        font-weight: bold;
+    }
+    .recommended-badge {
+        color: #ffc107;
+        font-weight: bold;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+    <div class="col-12">
+        <h1>Upload Asset</h1>
+        <a href="{{ url_for('upload.list') }}" class="btn btn-secondary">← Back to Assets</a>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column: Upload Form -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Step 1: Select and Upload</h5>
+            </div>
+            <div class="card-body">
+                <form id="preview-form" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="file_type" class="form-label">Asset Type <span class="text-danger">*</span></label>
+                        <select class="form-select" id="file_type" name="file_type" required>
+                            <option value="">Select type...</option>
+                            <option value="model">3D Model (GLB/USDZ) - Complete Package</option>
+                            <option value="shadow">Shadow Icon (SVG/PNG)</option>
+                            <option value="found">Found Icon (SVG/PNG)</option>
+                            <option value="badge">Badge Icon (SVG/PNG)</option>
+                        </select>
+                    </div>
+                    
+                    <!-- Standard file upload (for non-model types) -->
+                    <div id="standardUpload" class="mb-3">
+                        <label for="file" class="form-label">File <span class="text-danger">*</span></label>
+                        <input type="file" class="form-control" id="file" name="file">
+                        <small class="form-text text-muted">
+                            Allowed: Models (.glb, .usdz), Icons (.svg, .png). Max size: 50MB
+                        </small>
+                    </div>
+                    
+                    <!-- Model package upload (shown when model is selected) -->
+                    <div id="modelUpload" class="model-requirements">
+                        <h6 class="mb-3">3D Model Package</h6>
+                        <p class="text-muted mb-3">Start by uploading your GLB model to preview it, then add the required companion files.</p>
+                        
+                        <!-- Step 1: GLB Model -->
+                        <div class="file-group">
+                            <label for="model_glb" class="form-label">
+                                3D Model (GLB) <span class="required-badge">* Required</span>
+                            </label>
+                            <input type="file" class="form-control" id="model_glb" name="model_glb" accept=".glb">
+                            <small class="form-text text-muted">Main 3D model file for web/Android AR</small>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <button type="button" class="btn btn-info" id="previewGLBButton">Preview GLB Model</button>
+                        </div>
+                        
+                        <!-- Step 2: Companion Files (shown after GLB preview) -->
+                        <div id="companionFiles" style="display: none; margin-top: 20px; padding-top: 20px; border-top: 2px solid #ddd;">
+                            <h6 class="mb-3">Required Companion Files</h6>
+                            <p class="text-muted mb-3">These files are required before saving the complete package.</p>
+                            
+                            <div class="file-group">
+                                <label for="model_usdz" class="form-label">
+                                    3D Model (USDZ) <span class="required-badge">* Required</span>
+                                </label>
+                                <input type="file" class="form-control" id="model_usdz" name="model_usdz" accept=".usdz">
+                                <small class="form-text text-muted">iOS AR support - required for AR animations on iOS devices</small>
+                            </div>
+                            
+                            <div class="file-group">
+                                <label for="icon_shadow" class="form-label">
+                                    Shadow Icon <span class="required-badge">* Required</span>
+                                </label>
+                                <input type="file" class="form-control" id="icon_shadow" name="icon_shadow" accept=".svg,.png">
+                                <small class="form-text text-muted">Icon shown on map when item is not found (SVG or PNG)</small>
+                            </div>
+                            
+                            <div class="file-group">
+                                <label for="icon_found" class="form-label">
+                                    Found Icon <span class="required-badge">* Required</span>
+                                </label>
+                                <input type="file" class="form-control" id="icon_found" name="icon_found" accept=".svg,.png">
+                                <small class="form-text text-muted">Icon shown on map when item is found (SVG or PNG)</small>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="model_base_name" class="form-label">Base Name for Files</label>
+                                <input type="text" class="form-control" id="model_base_name" name="model_base_name" 
+                                       placeholder="e.g., 'peacock' (will create peacock.glb, peacock.usdz, etc.)">
+                                <small class="form-text text-muted">
+                                    All files will be saved with this base name. Leave empty to use GLB filename.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Custom name (for non-model types) -->
+                    <div id="customNameSection" class="mb-3">
+                        <label for="custom_name" class="form-label">Custom Filename (optional)</label>
+                        <input type="text" class="form-control" id="custom_name" name="custom_name" 
+                               placeholder="Leave empty to use original filename">
+                        <small class="form-text text-muted">
+                            If provided, file will be saved with this name. Extension will be added automatically.
+                        </small>
+                    </div>
+                    
+                    <div class="d-flex gap-2">
+                        <button type="button" class="btn btn-primary" id="previewButton" style="display: none;">Preview Complete Package</button>
+                        <a href="{{ url_for('upload.list') }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column: Preview -->
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Step 2: Preview</h5>
+            </div>
+            <div class="card-body">
+                <div class="preview-container" id="previewContainer">
+                    <div class="text-center text-muted py-5">
+                        <p class="mb-0">Preview will appear here after selecting and uploading files</p>
+                    </div>
+                    <div id="previewContent"></div>
+                    <div class="mt-3" id="previewActions" style="display: none;">
+                        <button type="button" class="btn btn-success w-100 mb-2" id="saveButton">Save to Project</button>
+                        <button type="button" class="btn btn-secondary w-100" id="reuploadButton">Upload Different File</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+let previewFiles = {};
+let previewFileType = null;
+let previewCustomName = null;
+let previewBaseName = null;
+
+// Show/hide model requirements based on selection
+document.getElementById('file_type').addEventListener('change', function() {
+    const fileType = this.value;
+    const standardUpload = document.getElementById('standardUpload');
+    const modelUpload = document.getElementById('modelUpload');
+    const customNameSection = document.getElementById('customNameSection');
+    
+    if (fileType === 'model') {
+        standardUpload.style.display = 'none';
+        modelUpload.classList.add('show');
+        customNameSection.style.display = 'none';
+        document.getElementById('previewButton').style.display = 'none';
+        document.getElementById('previewButton').textContent = 'Preview Complete Package';
+    } else {
+        standardUpload.style.display = 'block';
+        modelUpload.classList.remove('show');
+        customNameSection.style.display = 'block';
+        document.getElementById('previewButton').style.display = 'inline-block';
+        document.getElementById('previewButton').textContent = 'Preview Asset';
+    }
+    
+    // Reset preview
+    document.getElementById('previewContainer').classList.remove('active');
+    document.getElementById('previewActions').style.display = 'none';
+    document.getElementById('previewContent').innerHTML = `
+        <div class="text-center text-muted py-5">
+            <p class="mb-0">Preview will appear here after selecting and uploading files</p>
+        </div>
+    `;
+    previewFiles = {};
+});
+
+// Preview GLB button (for model packages)
+document.getElementById('previewGLBButton').addEventListener('click', function() {
+    const glbFile = document.getElementById('model_glb').files[0];
+    
+    if (!glbFile) {
+        alert('Please select a GLB model file first');
+        return;
+    }
+    
+    if (!glbFile.name.toLowerCase().endsWith('.glb')) {
+        alert('GLB file must have .glb extension');
+        return;
+    }
+    
+    // Store GLB file
+    previewFiles.glb = glbFile;
+    previewBaseName = glbFile.name.replace('.glb', '').replace('.GLB', '');
+    
+    // Show GLB preview
+    showGLBPreview(glbFile);
+    
+    // Show companion files section
+    document.getElementById('companionFiles').style.display = 'block';
+    
+    // Show the "Preview Complete Package" button
+    document.getElementById('previewButton').style.display = 'inline-block';
+});
+
+// Standard preview button (for non-model types)
+document.getElementById('previewButton').addEventListener('click', function() {
+    const fileType = document.getElementById('file_type').value;
+    
+    if (!fileType) {
+        alert('Please select an asset type');
+        return;
+    }
+    
+    if (fileType === 'model') {
+        // For model type, check if all files are ready
+        const glbFile = previewFiles.glb;
+        const usdzFile = document.getElementById('model_usdz').files[0];
+        const shadowIcon = document.getElementById('icon_shadow').files[0];
+        const foundIcon = document.getElementById('icon_found').files[0];
+        const baseName = document.getElementById('model_base_name').value.trim();
+        
+        if (!glbFile) {
+            alert('Please preview your GLB model first');
+            return;
+        }
+        
+        // Validate required companion files
+        if (!usdzFile) {
+            alert('Please select a USDZ model file (required for iOS AR)');
+            return;
+        }
+        if (!shadowIcon) {
+            alert('Please select a shadow icon');
+            return;
+        }
+        if (!foundIcon) {
+            alert('Please select a found icon');
+            return;
+        }
+        
+        // Validate file types
+        if (!usdzFile.name.toLowerCase().endsWith('.usdz')) {
+            alert('USDZ file must have .usdz extension');
+            return;
+        }
+        
+        previewFiles.usdz = usdzFile;
+        previewFiles.shadow = shadowIcon;
+        previewFiles.found = foundIcon;
+        previewFileType = fileType;
+        previewBaseName = baseName || previewBaseName;
+        
+        showModelPreview(glbFile, usdzFile, shadowIcon, foundIcon);
+    } else {
+        // Handle standard upload
+        const fileInput = document.getElementById('file');
+        const customName = document.getElementById('custom_name').value.trim();
+        
+        if (!fileInput.files || fileInput.files.length === 0) {
+            alert('Please select a file first');
+            return;
+        }
+        
+        const file = fileInput.files[0];
+        previewFiles = { file: file };
+        previewFileType = fileType;
+        previewCustomName = customName;
+        
+        showPreview(file, fileType);
+    }
+});
+
+function showGLBPreview(glbFile) {
+    const previewContainer = document.getElementById('previewContainer');
+    const previewContent = document.getElementById('previewContent');
+    const previewActions = document.getElementById('previewActions');
+    
+    const glbUrl = URL.createObjectURL(glbFile);
+    
+    previewContent.innerHTML = `
+        <div class="alert alert-info mb-3">
+            <strong>GLB Model Preview</strong><br>
+            <small><strong>File:</strong> ${glbFile.name} (${(glbFile.size / 1024 / 1024).toFixed(2)} MB)</small><br>
+            <small class="mb-0 mt-2 d-block">Review the model. If it looks good, add the required companion files on the left and click "Preview Complete Package".</small>
+        </div>
+        <div class="preview-model-viewer-container">
+            <model-viewer 
+                src="${glbUrl}"
+                alt="3D Model Preview"
+                autoplay
+                camera-controls
+                auto-rotate
+                interaction-prompt="none"
+                exposure="1.0"
+                shadow-intensity="0.5"
+                shadow-softness="1.0"
+                camera-orbit="0deg 75deg 1.5m"
+                camera-target="0m 0m 0m"
+                style="width: 100%; height: 500px; background: #FCF6EF; border-radius: 4px;">
+            </model-viewer>
+        </div>
+    `;
+    
+    previewContainer.classList.add('active');
+    previewActions.style.display = 'none';
+}
+
+function showModelPreview(glbFile, usdzFile, shadowIcon, foundIcon) {
+    const previewContainer = document.getElementById('previewContainer');
+    const previewContent = document.getElementById('previewContent');
+    const previewActions = document.getElementById('previewActions');
+    
+    // Reuse existing GLB URL if available, otherwise create new one
+    let glbUrl = null;
+    const existingViewer = document.querySelector('model-viewer');
+    if (existingViewer && existingViewer.src && existingViewer.src.startsWith('blob:')) {
+        glbUrl = existingViewer.src; // Reuse existing blob URL
+    } else {
+        glbUrl = URL.createObjectURL(glbFile);
+    }
+    
+    const shadowUrl = URL.createObjectURL(shadowIcon);
+    const foundUrl = URL.createObjectURL(foundIcon);
+    
+    previewContent.innerHTML = `
+        <div class="alert alert-success mb-3">
+            <strong>Complete Package Preview</strong><br>
+            <small><strong>Package:</strong> ${previewBaseName}</small><br>
+            <small><strong>GLB:</strong> ${glbFile.name} (${(glbFile.size / 1024 / 1024).toFixed(2)} MB) | 
+            <strong>USDZ:</strong> ${usdzFile.name} (${(usdzFile.size / 1024 / 1024).toFixed(2)} MB)</small><br>
+            <small><strong>Icons:</strong> ${shadowIcon.name} | ${foundIcon.name}</small>
+        </div>
+        <div class="mb-3">
+            <h6>3D Model Preview (GLB)</h6>
+            <div class="preview-model-viewer-container">
+                <model-viewer 
+                    src="${glbUrl}"
+                    alt="3D Model Preview"
+                    autoplay
+                    camera-controls
+                    auto-rotate
+                    interaction-prompt="none"
+                    exposure="1.0"
+                    shadow-intensity="0.5"
+                    shadow-softness="1.0"
+                    camera-orbit="0deg 75deg 1.5m"
+                    camera-target="0m 0m 0m"
+                    style="width: 100%; height: 400px; background: #FCF6EF; border-radius: 4px;">
+                </model-viewer>
+            </div>
+        </div>
+        <div>
+            <h6>Icons Preview</h6>
+            <div class="row">
+                <div class="col-6 text-center mb-3">
+                    <strong class="d-block mb-2">Shadow Icon</strong>
+                    <img src="${shadowUrl}" alt="Shadow Icon" class="preview-image" style="max-width: 100%; max-height: 150px;">
+                </div>
+                <div class="col-6 text-center mb-3">
+                    <strong class="d-block mb-2">Found Icon</strong>
+                    <img src="${foundUrl}" alt="Found Icon" class="preview-image" style="max-width: 100%; max-height: 150px;">
+                </div>
+            </div>
+        </div>
+    `;
+    
+    previewContainer.classList.add('active');
+    previewActions.style.display = 'block';
+}
+
+function showPreview(file, fileType) {
+    const previewContainer = document.getElementById('previewContainer');
+    const previewContent = document.getElementById('previewContent');
+    const previewActions = document.getElementById('previewActions');
+    
+    previewContent.innerHTML = '';
+    
+    const fileName = file.name;
+    const fileExt = fileName.split('.').pop().toLowerCase();
+    
+    if (fileExt === 'svg' || fileExt === 'png' || fileExt === 'jpg' || fileExt === 'jpeg') {
+        // Image preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            previewContent.innerHTML = `
+                <div class="alert alert-info mb-3">
+                    <strong>File:</strong> ${fileName}<br>
+                    <small><strong>Type:</strong> Image (${fileExt.toUpperCase()}) | <strong>Size:</strong> ${(file.size / 1024).toFixed(2)} KB</small>
+                </div>
+                <div class="text-center">
+                    <img src="${e.target.result}" alt="Preview" class="preview-image" style="max-width: 100%; max-height: 500px;">
+                </div>
+            `;
+            previewContainer.classList.add('active');
+            previewActions.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+        return;
+    } else {
+        // Generic file info
+        previewContent.innerHTML = `
+            <div class="alert alert-info">
+                <strong>File:</strong> ${fileName}<br>
+                <small><strong>Type:</strong> ${fileExt.toUpperCase()} | <strong>Size:</strong> ${(file.size / 1024).toFixed(2)} KB</small><br>
+                <p class="mb-0 mt-2">Preview not available for this file type.</p>
+            </div>
+        `;
+    }
+    
+    previewContainer.classList.add('active');
+    previewActions.style.display = 'block';
+}
+
+// Save button handler
+document.getElementById('saveButton').addEventListener('click', function() {
+    if (previewFileType === 'model') {
+        // Save model package
+        if (!previewFiles.glb || !previewFiles.usdz || !previewFiles.shadow || !previewFiles.found) {
+            alert('Missing required files');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('file_type', 'model_package');
+        formData.append('model_glb', previewFiles.glb);
+        formData.append('model_usdz', previewFiles.usdz);
+        formData.append('icon_shadow', previewFiles.shadow);
+        formData.append('icon_found', previewFiles.found);
+        formData.append('base_name', previewBaseName);
+        
+        const saveButton = document.getElementById('saveButton');
+        const originalText = saveButton.textContent;
+        saveButton.disabled = true;
+        saveButton.textContent = 'Saving...';
+        
+        fetch('{{ url_for("upload.upload") }}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.text();
+            }
+            throw new Error('Upload failed');
+        })
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const errorAlert = doc.querySelector('.alert-danger');
+            
+            if (errorAlert) {
+                alert(errorAlert.textContent.trim());
+                saveButton.disabled = false;
+                saveButton.textContent = originalText;
+            } else {
+                window.location.href = '{{ url_for("upload.list") }}';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error saving files: ' + error.message);
+            saveButton.disabled = false;
+            saveButton.textContent = originalText;
+        });
+    } else {
+        // Save standard file
+        if (!previewFiles.file) {
+            alert('No file to save');
+            return;
+        }
+        
+        const formData = new FormData();
+        formData.append('file', previewFiles.file);
+        formData.append('file_type', previewFileType);
+        if (previewCustomName) {
+            formData.append('custom_name', previewCustomName);
+        }
+        
+        const saveButton = document.getElementById('saveButton');
+        const originalText = saveButton.textContent;
+        saveButton.disabled = true;
+        saveButton.textContent = 'Saving...';
+        
+        fetch('{{ url_for("upload.upload") }}', {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => {
+            if (response.ok) {
+                return response.text();
+            }
+            throw new Error('Upload failed');
+        })
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const errorAlert = doc.querySelector('.alert-danger');
+            
+            if (errorAlert) {
+                alert(errorAlert.textContent.trim());
+                saveButton.disabled = false;
+                saveButton.textContent = originalText;
+            } else {
+                window.location.href = '{{ url_for("upload.list") }}';
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error saving file: ' + error.message);
+            saveButton.disabled = false;
+            saveButton.textContent = originalText;
+        });
+    }
+});
+
+// Re-upload button handler
+document.getElementById('reuploadButton').addEventListener('click', function() {
+    // Reset preview
+    document.getElementById('previewContainer').classList.remove('active');
+    document.getElementById('previewActions').style.display = 'none';
+    document.getElementById('previewContent').innerHTML = `
+        <div class="text-center text-muted py-5">
+            <p class="mb-0">Preview will appear here after selecting and uploading files</p>
+        </div>
+    `;
+    
+    // Reset file inputs
+    document.getElementById('file').value = '';
+    document.getElementById('model_glb').value = '';
+    document.getElementById('model_usdz').value = '';
+    document.getElementById('icon_shadow').value = '';
+    document.getElementById('icon_found').value = '';
+    
+    // Hide companion files section
+    document.getElementById('companionFiles').style.display = 'none';
+    
+    previewFiles = {};
+    
+    // Clean up object URLs
+    const modelViewer = document.querySelector('model-viewer');
+    if (modelViewer && modelViewer.src && modelViewer.src.startsWith('blob:')) {
+        URL.revokeObjectURL(modelViewer.src);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block title %}Backups - CMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Backup Management</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>Available Backups</h5>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th>Backup Name</th>
+                                <th>Size</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for backup in backups %}
+                            <tr>
+                                <td><code>{{ backup.name }}</code></td>
+                                <td>{{ "%.1f"|format(backup.size / 1024) }} KB</td>
+                                <td>{{ backup.created.strftime('%Y-%m-%d %H:%M:%S') }}</td>
+                                <td>
+                                    <form method="POST" action="{{ url_for('admin.restore_backup') }}" 
+                                          class="d-inline" 
+                                          onsubmit="return confirm('Restore this backup? Current data will be replaced.');">
+                                        <input type="hidden" name="backup_name" value="{{ backup.name }}">
+                                        <button type="submit" class="btn btn-sm btn-primary">Restore</button>
+                                    </form>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

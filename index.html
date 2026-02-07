@@ -1,0 +1,1265 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+    <!-- App title: change for client branding -->
+    <title>Animals at the Tower</title>
+
+    <!-- Resource Hints - removed preload to avoid blocking on iOS Safari -->
+
+    <!-- External Fonts -->
+    <!-- Font loaded in styles/theme.css -->
+    <link rel="stylesheet" href="styles/theme.css">
+    <link rel="stylesheet" href="styles/style.css" media="print" onload="this.media='all'">
+    <noscript><link rel="stylesheet" href="styles/style.css"></noscript>
+
+    <!-- Customer.io: load before snippet. When snippet is added, returning users will be synced. -->
+    <script src="scripts/customer-io-helper.js"></script>
+
+    <style>
+        /* Orientation Warning Overlay */
+        .orientation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .orientation-content {
+            background-color: var(--background-cream, #F1DCB8);
+            border: 3px solid var(--accent-terracotta, #C84627);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            max-width: 300px;
+            margin: 1rem;
+            box-shadow: 0px 4px 0px 0px var(--accent-terracotta, #C84627);
+        }
+
+        .orientation-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: rotateToPortrait 2.5s ease-in-out infinite;
+            transform-origin: 0 100%;
+            display: inline-block;
+        }
+
+        .orientation-content h2 {
+            color: var(--accent-terracotta, #C84627);
+            font-family: var(--font-family-primary);
+            font-weight: 700;
+            font-size: 2rem;
+            margin: 0 0 1rem 0;
+        }
+
+        .orientation-content p {
+            color: var(--text-color, #514848);
+            font-size: 1.1rem;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        @keyframes rotateToPortrait {
+            0% { transform: rotate(-90deg); opacity: 1; }
+            40% { transform: rotate(0deg); opacity: 1; }
+            60% { transform: rotate(0deg); opacity: 1; }
+            70% { transform: rotate(0deg); opacity: 0; }
+            71% { transform: rotate(-90deg); opacity: 0; }
+            80% { transform: rotate(-90deg); opacity: 1; }
+            100% { transform: rotate(-90deg); opacity: 1; }
+        }
+
+        /* Hidden class for orientation overlay */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Disable scrolling */
+        body {
+            overflow: hidden;
+        }
+
+        /* Ensure onboarding overlay appears above animated background */
+        #onboarding {
+            background: transparent;
+        }
+
+        /* Animation container - ensure full screen coverage */
+        #animation_container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;  
+            width: 100%;  
+            height: 100vh;
+            z-index: 1;
+            background-color: #DDEEDE;
+            overflow: hidden;
+            margin: 0; 
+            padding: 0; 
+        }
+
+        /* Support for mobile viewport units */
+        @supports (height: 100dvh) {
+            #animation_container {
+                height: 100dvh;
+            }
+        }
+
+        /* Fix for mobile Safari */
+        @supports (-webkit-touch-callout: none) {
+            #animation_container {
+                height: -webkit-fill-available;
+            }
+        }
+
+        /* Canvas - let makeResponsive handle sizing, just ensure it's positioned correctly */
+        #canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            margin: 0 auto; 
+            display: block;
+        }
+
+        /* DOM overlay container */
+        #dom_overlay_container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        /* Landing: 3 animals - positioned, 50% opacity, slide-in with bounce */
+        .landing-animals {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            pointer-events: none;
+            z-index: 2;
+        }
+        .landing-animal {
+            position: absolute;
+            opacity: 0;
+            width: auto;
+            height: auto;
+            max-height: none;
+        }
+        /* Lion: top-left – larger */
+        .landing-animal-lion {
+            top: 0;
+            left: -6%;
+            width: clamp(117px, 55vmin, 356px);
+        }
+        /* Elephant: top-right – larger */
+        .landing-animal-elephant {
+            top: 0;
+            right: -6%;
+            width: clamp(133px, 62vmin, 404px);
+        }
+        /* Polar bear: bottom-left – larger */
+        .landing-animal-polarbear {
+            bottom: -5%;
+            left: -10%;
+            width: clamp(148px, 70vmin, 450px);
+        }
+        /* Smaller screens: scaled down but still proportionally larger */
+        @media (max-width: 600px) {
+            .landing-animal-lion { width: clamp(110px, 49vmin, 286px); left: -4%; }
+            .landing-animal-elephant { width: clamp(125px, 56vmin, 322px); right: -4%; }
+            .landing-animal-polarbear { width: clamp(140px, 62vmin, 359px); left: -6%; bottom: -3%; }
+        }
+        @media (max-width: 380px) {
+            .landing-animal-lion { width: clamp(98px, 44vmin, 234px); left: -2%; }
+            .landing-animal-elephant { width: clamp(109px, 49vmin, 265px); right: -2%; }
+            .landing-animal-polarbear { width: clamp(122px, 55vmin, 296px); left: -4%; bottom: -2%; }
+        }
+        .landing-animal.animate-in {
+            opacity: 0.5;
+        }
+        /* Lion and polar bear: slide in from the left – slow */
+        @keyframes slideInLeftBounce {
+            0% { opacity: 0; transform: translateX(-100px); }
+            70% { opacity: 0.5; transform: translateX(8px); }
+            100% { opacity: 0.5; transform: translateX(0); }
+        }
+        .landing-animal-polarbear.animate-in {
+            animation: slideInLeftBounce 1.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        .landing-animal-lion.animate-in {
+            animation: slideInLeftBounce 1.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        /* Elephant: slide in from the right – slow */
+        @keyframes slideInRightBounce {
+            0% { opacity: 0; transform: translateX(100px); }
+            70% { opacity: 0.5; transform: translateX(-8px); }
+            100% { opacity: 0.5; transform: translateX(0); }
+        }
+        .landing-animal-elephant.animate-in {
+            animation: slideInRightBounce 1.9s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+
+        /* Title + button: start hidden, then zoom-in after animals (staggered in JS) */
+        #landingTitle,
+        #beginTrailButton {
+            opacity: 0;
+            transform: scale(0.8);
+        }
+        @keyframes zoomPopIn {
+            0% { opacity: 0; transform: scale(0.8); }
+            70% { opacity: 1; transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+        #landingTitle.animate-in {
+            animation: zoomPopIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        #beginTrailButton.animate-in {
+            animation: zoomPopIn 0.7s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+        }
+        #landingTitle.animate-out,
+        #beginTrailButton.animate-out {
+            animation: fadeOut 0.4s ease-in forwards;
+        }
+
+        /* Butterfly Container - keeps element always in viewport to prevent GIF pausing */
+        .butterfly-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10001;
+            pointer-events: none;
+            overflow: visible;
+        }
+
+        /* Butterfly Animation Styles */
+        .butterfly-animation {
+            position: absolute;
+            width: 60px;
+            height: auto;
+            opacity: 0;
+            will-change: transform, opacity;
+            /* Position at top of viewport, centered horizontally */
+            top: 0;
+            left: 50%;
+            transform-origin: center center;
+            /* Force browser to keep animating by ensuring element stays in viewport */
+            image-rendering: auto;
+        }
+
+        /* Butterfly fade in */
+        @keyframes butterflyFadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        /* Butterfly flutter path - slow, organic movement in top portion of screen */
+        /* Element stays within viewport bounds to prevent GIF pausing */
+        /* Using viewport units to keep it in the top area but higher up */
+        @keyframes butterflyFlutter {
+            0% {
+                transform: translate(calc(-50% - 30vw), 8vh) rotate(-25deg);
+            }
+            10% {
+                transform: translate(calc(-50% - 15vw), 6vh) rotate(10deg);
+            }
+            20% {
+                transform: translate(calc(-50% + 0vw), 5vh) rotate(-15deg);
+            }
+            30% {
+                transform: translate(calc(-50% + 20vw), 7vh) rotate(20deg);
+            }
+            40% {
+                transform: translate(calc(-50% + 40vw), 6vh) rotate(-10deg);
+            }
+            50% {
+                transform: translate(calc(-50% + 60vw), 8vh) rotate(15deg);
+            }
+            60% {
+                transform: translate(calc(-50% + 50vw), 9vh) rotate(-20deg);
+            }
+            70% {
+                transform: translate(calc(-50% + 30vw), 7vh) rotate(10deg);
+            }
+            80% {
+                transform: translate(calc(-50% + 10vw), 8vh) rotate(-15deg);
+            }
+            90% {
+                transform: translate(calc(-50% - 10vw), 6vh) rotate(20deg);
+            }
+            100% {
+                transform: translate(calc(-50% - 30vw), 8vh) rotate(-25deg);
+            }
+        }
+
+        /* Butterfly fade out */
+        @keyframes butterflyFadeOut {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        /* Butterfly states */
+        #butterfly.animate-in {
+            animation: butterflyFadeIn 1s ease-in forwards,
+                       butterflyFlutter 25s ease-in-out infinite;
+            /* Force browser to keep GIF animating */
+            animation-play-state: running !important;
+        }
+
+        #butterfly.animate-out {
+            animation: butterflyFadeOut 0.5s ease-in forwards;
+        }
+        
+        /* Additional CSS to prevent GIF pausing - ensure element is always considered visible */
+        #butterfly {
+            content-visibility: auto;
+            contain: none;
+            /* Force browser to keep rendering the GIF */
+            backface-visibility: visible;
+            transform-style: preserve-3d;
+        }
+
+        /* Bee Container - keeps element always in viewport to prevent GIF pausing */
+        .bee-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: 10001;
+            pointer-events: none;
+            overflow: visible;
+        }
+
+        /* Bee Animation Styles */
+        .bee-animation {
+            position: absolute;
+            width: 50px;
+            height: auto;
+            opacity: 0;
+            will-change: transform, opacity;
+            /* Position at center of viewport */
+            top: 50%;
+            left: 50%;
+            transform-origin: center center;
+            image-rendering: auto;
+        }
+
+        /* Bee fade in */
+        @keyframes beeFadeIn {
+            0% {
+                opacity: 0;
+            }
+            100% {
+                opacity: 1;
+            }
+        }
+
+        /* Bee erratic path - faster, more erratic movement with hover moments */
+        /* scaleX: -1 flips the bee horizontally when moving right (X increasing), scaleX: 1 when moving left (X decreasing) */
+        @keyframes beeErraticPath {
+            /* 0-12%: Moving right (X: -40vw → -20vw → -10vw) - flip to face right */
+            0% {
+                transform: translate(calc(-50% - 40vw), calc(-50% + 25vh)) rotate(-30deg) scaleX(1);
+            }
+            5% {
+                transform: translate(calc(-50% - 20vw), calc(-50% + 20vh)) rotate(25deg) scaleX(-1);
+            }
+            10% {
+                transform: translate(calc(-50% - 10vw), calc(-50% + 18vh)) rotate(-20deg) scaleX(-1);
+            }
+            12% {
+                transform: translate(calc(-50% - 10vw), calc(-50% + 18vh)) rotate(-20deg) scaleX(-1);
+            }
+            /* 15-42%: Moving right (X: -10vw → +5vw → +25vw → +45vw → +60vw → +80vw) - keep facing right */
+            15% {
+                transform: translate(calc(-50% + 5vw), calc(-50% + 22vh)) rotate(35deg) scaleX(-1);
+            }
+            20% {
+                transform: translate(calc(-50% + 25vw), calc(-50% + 15vh)) rotate(-25deg) scaleX(-1);
+            }
+            25% {
+                transform: translate(calc(-50% + 45vw), calc(-50% + 28vh)) rotate(30deg) scaleX(-1);
+            }
+            28% {
+                transform: translate(calc(-50% + 45vw), calc(-50% + 28vh)) rotate(30deg) scaleX(-1);
+            }
+            32% {
+                transform: translate(calc(-50% + 60vw), calc(-50% + 20vh)) rotate(-35deg) scaleX(-1);
+            }
+            38% {
+                transform: translate(calc(-50% + 80vw), calc(-50% + 25vh)) rotate(20deg) scaleX(-1);
+            }
+            42% {
+                transform: translate(calc(-50% + 80vw), calc(-50% + 25vh)) rotate(20deg) scaleX(-1);
+            }
+            /* 48-100%: Moving left (X: +80vw → +70vw → +50vw → +30vw → +10vw → -15vw → -30vw → -35vw → -40vw) - flip to face left */
+            48% {
+                transform: translate(calc(-50% + 70vw), calc(-50% + 30vh)) rotate(-28deg) scaleX(1);
+            }
+            55% {
+                transform: translate(calc(-50% + 50vw), calc(-50% + 18vh)) rotate(32deg) scaleX(1);
+            }
+            60% {
+                transform: translate(calc(-50% + 30vw), calc(-50% + 24vh)) rotate(-22deg) scaleX(1);
+            }
+            65% {
+                transform: translate(calc(-50% + 30vw), calc(-50% + 24vh)) rotate(-22deg) scaleX(1);
+            }
+            72% {
+                transform: translate(calc(-50% + 10vw), calc(-50% + 20vh)) rotate(28deg) scaleX(1);
+            }
+            78% {
+                transform: translate(calc(-50% - 15vw), calc(-50% + 26vh)) rotate(-30deg) scaleX(1);
+            }
+            82% {
+                transform: translate(calc(-50% - 15vw), calc(-50% + 26vh)) rotate(-30deg) scaleX(1);
+            }
+            88% {
+                transform: translate(calc(-50% - 30vw), calc(-50% + 22vh)) rotate(25deg) scaleX(1);
+            }
+            95% {
+                transform: translate(calc(-50% - 35vw), calc(-50% + 25vh)) rotate(-28deg) scaleX(1);
+            }
+            100% {
+                transform: translate(calc(-50% - 40vw), calc(-50% + 25vh)) rotate(-30deg) scaleX(1);
+            }
+        }
+
+        /* Bee fade out */
+        @keyframes beeFadeOut {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        /* Bee states */
+        #bee.animate-in {
+            animation: beeFadeIn 1s ease-in forwards,
+                       beeErraticPath 18s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+            /* Force browser to keep GIF animating */
+            animation-play-state: running !important;
+        }
+
+        #bee.animate-out {
+            animation: beeFadeOut 0.5s ease-in forwards;
+        }
+        
+        /* Additional CSS to prevent GIF pausing - ensure element is always considered visible */
+        #bee {
+            content-visibility: auto;
+            contain: none;
+            /* Force browser to keep rendering the GIF */
+            backface-visibility: visible;
+            transform-style: preserve-3d;
+        }
+
+        /* Fade out animation */
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            100% {
+                opacity: 0;
+                transform: scale(0.9);
+            }
+        }
+
+        /* Landing title – Noto Sans Display Condensed Bold, larger, lower, left-aligned */
+        #landingTitle {
+            color: #514848;
+            font-family: var(--Title-Condensed-Font), sans-serif !important;
+            font-size: 96px;
+            font-style: normal;
+            font-weight: 700;
+            font-stretch: condensed;
+            font-variation-settings: "wdth" 87.5, "wght" 700;
+            line-height: 110%;
+            letter-spacing: -1.5px;
+            text-transform: uppercase;
+            text-align: left !important;
+            margin-top: 0 !important;
+            margin-bottom: 32px !important;
+        }
+        @media (max-width: 480px) {
+            #landingTitle { font-size: clamp(44px, 16vw, 72px); }
+        }
+        .landing-overlay {
+            z-index: 10 !important;
+            align-items: stretch;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        @supports (height: 100dvh) {
+            .landing-overlay { min-height: 100dvh; }
+        }
+        .landing-overlay .onboarding-content {
+            margin-top: 0 !important;
+            margin-bottom: 0 !important;
+            justify-content: flex-start;
+            padding-top: 18vh;
+            padding-bottom: 0;
+            flex: 1;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .landing-overlay .onboarding-content #landingTitle {
+            flex: 0 0 auto;
+        }
+        .landing-overlay .onboarding-content #beginTrailButton {
+            margin-top: auto;
+            margin-bottom: 12vh;
+        }
+
+        /* Begin trail button - ornate serif to match mock */
+        .button-begin-trail {
+            background: #514848;
+            color: #FFFFFF;
+            border: none;
+            border-radius: 12px;
+            font-family: var(--Button-Display-Font, "Cinzel", serif);
+            font-size: 22px;
+            font-weight: 600;
+            padding: 16px 48px;
+            box-shadow: 0 4px 0 0 #3d3636;
+            cursor: pointer;
+        }
+
+        /* Loading Screen */
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #DDEEDE;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10000;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-text-container,
+        .owl-container {
+            opacity: 1;
+            transition: opacity 0.5s ease-out;
+        }
+
+        .loading-screen.fade-out-elements .loading-text-container,
+        .loading-screen.fade-out-elements .owl-container {
+            opacity: 0;
+        }
+
+        .loading-screen.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .loading-screen.hidden .loading-char {
+            animation: fadeOut 0.5s ease-out forwards;
+        }
+
+        @keyframes fadeOut {
+            0% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+            }
+        }
+
+        /* Container for the loader */
+        .loader {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            gap: 0.5em;
+        }
+
+        .loading-text-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin-top: -1em;
+        }
+
+        .owl-container {
+            position: relative;
+            width: 100%;
+            height: auto;
+            min-height: 30vmax;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .horniman-loading {
+            width: 100%;
+            height: auto;
+            max-width: 100vw;
+            object-fit: contain;
+        }
+
+        /* Loading text characters */
+        .loading-char {
+            font-family: var(--font-family-primary);
+            font-weight: 700;
+            font-size: 2em;
+            color: var(--text-color, #514848);
+            margin: 0 0.1em;
+            display: inline-block;
+            font-style: normal;
+        }
+
+        /* Landing onboarding header with settings */
+        .onboarding-header {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 16px 20px;
+            z-index: 10;
+        }
+        .onboarding-settings-btn {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--primary-color, #514848);
+            border: none;
+            box-shadow: 0 4px 0 0 var(--button-shadow, #3d3636);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .onboarding-settings-btn img {
+            width: 24px;
+            height: 24px;
+            filter: brightness(0) invert(1);
+        }
+        .landing-subtitle {
+            font-family: var(--font-family-primary);
+            font-size: 18px;
+            color: var(--text-color, #514848);
+            text-align: center;
+            margin: 0 0 24px 0;
+            max-width: 320px;
+        }
+        #onboarding .button-main {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+        #onboarding .button-icon {
+            width: 24px;
+            height: 24px;
+            filter: brightness(0) invert(1);
+        }
+        .landing-secondary-buttons {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            width: 100%;
+            max-width: 320px;
+            margin-top: 16px;
+        }
+        .landing-secondary-buttons .button-secondary:nth-child(3) {
+            grid-column: 1 / -1;
+        }
+        #onboarding .button-secondary {
+            background: var(--background-cream, #F1DCB8);
+            color: var(--text-color, #514848);
+            border: 2px solid var(--primary-color, #514848);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+        #onboarding .button-secondary .button-icon {
+            filter: none;
+        }
+        #onboarding .button-secondary .button-icon {
+            opacity: 0.8;
+        }
+
+    </style>
+
+  </head>
+
+  <body>
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+      <div class="loader">
+        <div class="owl-container">
+          <img src="./assets/svg/HRP_logo.svg" alt="Loading" class="horniman-loading" />
+        </div>
+        <div class="loading-text-container">
+          <span class="loading-char">L</span>
+          <span class="loading-char">o</span>
+          <span class="loading-char">a</span>
+          <span class="loading-char">d</span>
+          <span class="loading-char">i</span>
+          <span class="loading-char">n</span>
+          <span class="loading-char">g</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Landing background and animals -->
+    <div id="animation_container">
+      <canvas id="canvas" width="640" height="1136" style="display:none;"></canvas>
+      <div id="dom_overlay_container"></div>
+      <div class="landing-animals" aria-hidden="true">
+        <img src="./assets/loading/lion.svg" alt="" class="landing-animal landing-animal-lion">
+        <img src="./assets/loading/elephant.svg" alt="" class="landing-animal landing-animal-elephant">
+        <img src="./assets/loading/polar bear 4.svg" alt="" class="landing-animal landing-animal-polarbear">
+      </div>
+    </div>
+
+    <!-- Orientation Warning Overlay -->
+    <div id="orientationOverlay" class="orientation-overlay hidden">
+      <div class="orientation-content">
+        <div class="orientation-icon">📱</div>
+        <h2>Please Rotate Your Device</h2>
+        <p>Hold your device in portrait mode for the best experience</p>
+      </div>
+    </div>
+
+    <!-- HTML Overlay: title + Begin trail button only -->
+    <div id="onboarding" class="overlay landing-overlay" style="display: flex;">
+      <main class="onboarding-content">
+        <h1 class="onboarding-title display-title" id="landingTitle">ANIMALS<br>AT THE<br>TOWER</h1>
+        <button id="beginTrailButton" type="button" class="button button-begin-trail" onclick="handleBeginTrailClick()" aria-label="Begin trail">Begin trail</button>
+      </main>
+    </div>
+
+    <script>
+        // Wrap everything to prevent blocking errors on iOS Safari
+        try {
+        
+        // Orientation Detection
+        class OrientationManager {
+            constructor() {
+                this.orientationOverlay = document.getElementById('orientationOverlay');
+                
+                // Ensure overlay starts hidden
+                if (this.orientationOverlay) {
+                    this.orientationOverlay.classList.add('hidden');
+                }
+                
+                this.init();
+            }
+            
+            init() {
+                // Check initial orientation
+                this.checkOrientation();
+                
+                // Listen for orientation changes
+                window.addEventListener('orientationchange', () => {
+                    // Small delay to ensure the orientation change is complete
+                    setTimeout(() => this.checkOrientation(), 100);
+                });
+                
+                // Also listen for resize events as a backup
+                window.addEventListener('resize', () => {
+                    setTimeout(() => this.checkOrientation(), 100);
+                });
+            }
+            
+            checkOrientation() {
+                try {
+                    // Use screen orientation API if available, fallback to window dimensions
+                    let isLandscape = false;
+                    
+                    if (screen && screen.orientation && typeof screen.orientation.angle !== 'undefined') {
+                        // Use screen orientation API for more accurate detection
+                        isLandscape = screen.orientation.angle === 90 || screen.orientation.angle === 270;
+                    } else {
+                        // Fallback to window dimensions with a small tolerance
+                        isLandscape = window.innerWidth > window.innerHeight + 50;
+                    }
+                    
+                    if (this.orientationOverlay) {
+                        if (isLandscape) {
+                            this.orientationOverlay.classList.remove('hidden');
+                        } else {
+                            this.orientationOverlay.classList.add('hidden');
+                        }
+                    }
+                } catch (e) {
+                    // If orientation check fails, just hide the overlay
+                    if (this.orientationOverlay) {
+                        this.orientationOverlay.classList.add('hidden');
+                    }
+                }
+            }
+        }
+
+        // Check if localStorage is available (non-blocking)
+        function isLocalStorageAvailable() {
+            try {
+                if (typeof Storage === 'undefined' || !window.localStorage) {
+                    return false;
+                }
+                const test = '__localStorage_test__';
+                localStorage.setItem(test, test);
+                localStorage.removeItem(test);
+                return true;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // Check if user already exists and show welcome message
+        // This function is called AFTER page load to avoid blocking
+        function checkExistingUser() {
+            // Get elements with null checks
+            const welcomeTitle = document.getElementById('welcomeTitle');
+            const welcomeMessage = document.getElementById('welcomeMessage');
+            const welcomeNickname = document.getElementById('welcomeNickname');
+            const startButton = document.getElementById('startButton');
+            const continueButton = document.getElementById('continueButton');
+            
+            // Ensure all elements exist before proceeding
+            if (!welcomeTitle || !welcomeMessage || !welcomeNickname || !startButton || !continueButton) {
+                return; // Elements not ready yet
+            }
+            
+            // Always show default state first (non-blocking)
+            // Then check localStorage asynchronously
+            setTimeout(function() {
+                try {
+                    // Check localStorage availability
+                    if (!isLocalStorageAvailable()) {
+                        // localStorage not available, keep default new user screen
+                        return;
+                    }
+                    
+                    // Safely access localStorage with corruption detection
+                    let userData = null;
+                    try {
+                        const userDataStr = localStorage.getItem('userData');
+                        if (userDataStr) {
+                            try {
+                                userData = JSON.parse(userDataStr);
+                                // Validate userData structure
+                                if (userData && typeof userData !== 'object') {
+                                    throw new Error('Invalid userData format');
+                                }
+                            } catch (parseError) {
+                                // Corrupted data - clear it
+                                console.warn('Corrupted userData detected, clearing:', parseError);
+                                localStorage.removeItem('userData');
+                                return;
+                            }
+                        }
+                    } catch (e) {
+                        // If localStorage fails, keep default screen
+                        console.warn('localStorage access failed:', e);
+                        return;
+                    }
+                    
+                    // Update UI if user exists
+                    if (userData && userData.nickname) {
+                        welcomeNickname.textContent = userData.nickname;
+                        welcomeMessage.style.display = 'block';
+                        startButton.style.display = 'none';
+                        continueButton.style.display = 'block';
+                        var landingSub = document.getElementById('landingSubtitle');
+                        if (landingSub) landingSub.style.display = 'none';
+                        if (typeof syncUserToCustomerIO === 'function') {
+                            syncUserToCustomerIO(userData);
+                        }
+                    }
+                } catch (error) {
+                    console.warn('Error checking existing user:', error);
+                    // Keep default state on any error
+                }
+            }, 100); // Small delay to ensure page is fully rendered
+        }
+
+        // Clean up corrupted localStorage data that might block page load
+        function cleanupCorruptedStorage() {
+            try {
+                if (typeof Storage === 'undefined' || !window.localStorage) {
+                    return;
+                }
+                
+                // Test if localStorage is accessible
+                const testKey = '__storage_test__';
+                localStorage.setItem(testKey, 'test');
+                localStorage.removeItem(testKey);
+                
+                // Try to read userData and check if it's valid JSON
+                try {
+                    const userDataStr = localStorage.getItem('userData');
+                    if (userDataStr) {
+                        JSON.parse(userDataStr); // Test if it's valid JSON
+                    }
+                } catch (e) {
+                    // Corrupted userData - clear it
+                    console.warn('Corrupted userData detected, clearing...');
+                    localStorage.removeItem('userData');
+                }
+                
+                // Try to read collectedBadges and check if it's valid JSON
+                try {
+                    const badgesStr = localStorage.getItem('collectedBadges');
+                    if (badgesStr) {
+                        JSON.parse(badgesStr); // Test if it's valid JSON
+                    }
+                } catch (e) {
+                    // Corrupted collectedBadges - clear it
+                    console.warn('Corrupted collectedBadges detected, clearing...');
+                    localStorage.removeItem('collectedBadges');
+                }
+            } catch (e) {
+                // If localStorage is completely broken, try to clear everything
+                console.warn('localStorage appears corrupted, attempting cleanup...');
+                try {
+                    localStorage.clear();
+                } catch (clearError) {
+                    // Can't even clear - localStorage is completely broken
+                    console.error('Cannot access localStorage:', clearError);
+                }
+            }
+        }
+
+        // Initialize page - only run once, completely non-blocking
+        let initialized = false;
+        function initializePage() {
+            if (initialized) return;
+            initialized = true;
+            
+            try {
+                // Don't clean up storage here - do it later after page loads
+                // This ensures page can render even if localStorage is broken
+                new OrientationManager();
+            } catch (error) {
+                console.error('Error initializing orientation manager:', error);
+            }
+        }
+
+        // Initialize orientation manager immediately (non-blocking)
+        // This doesn't access localStorage, so it's safe
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function() {
+                try {
+                    initializePage();
+                } catch (e) {
+                    console.error('Error in DOMContentLoaded:', e);
+                }
+            }, false);
+        } else {
+            // DOM already ready
+            try {
+                initializePage();
+            } catch (e) {
+                console.error('Error initializing page:', e);
+            }
+        }
+
+        window.addEventListener('load', function() {
+            try {
+                cleanupCorruptedStorage();
+            } catch (e) {
+                console.warn('Storage cleanup failed, continuing anyway:', e);
+            }
+            // Always show landing after 2s (do not depend on CreateJS)
+            setTimeout(function() {
+                var loadingScreen = document.getElementById('loadingScreen');
+                if (loadingScreen) {
+                    loadingScreen.classList.add('fade-out-elements');
+                    setTimeout(function() {
+                        loadingScreen.classList.add('hidden');
+                        setTimeout(function() {
+                            if (loadingScreen.parentNode) loadingScreen.parentNode.removeChild(loadingScreen);
+                        }, 500);
+                    }, 500);
+                }
+                if (typeof window.animateLanding === 'function') window.animateLanding();
+            }, 2000);
+        }, false);
+        
+        function animateLanding() {
+            var lion = document.querySelector('.landing-animal-lion');
+            var elephant = document.querySelector('.landing-animal-elephant');
+            var polarbear = document.querySelector('.landing-animal-polarbear');
+            var title = document.getElementById('landingTitle');
+            var btn = document.getElementById('beginTrailButton');
+            // Order: elephant first, then lion, then bear – all slower with clear gaps
+            if (elephant) elephant.classList.add('animate-in');
+            setTimeout(function() {
+                if (lion) lion.classList.add('animate-in');
+            }, 1500);
+            setTimeout(function() {
+                if (polarbear) polarbear.classList.add('animate-in');
+            }, 3100);
+            // Then pop in text, then button
+            setTimeout(function() {
+                if (title) title.classList.add('animate-in');
+            }, 5300);
+            setTimeout(function() {
+                if (btn) btn.classList.add('animate-in');
+            }, 6100);
+        }
+        window.animateLanding = animateLanding;
+        
+        function handleBeginTrailClick() {
+            var title = document.getElementById('landingTitle');
+            var btn = document.getElementById('beginTrailButton');
+            if (btn) btn.disabled = true;
+            if (title) { title.classList.remove('animate-in'); title.classList.add('animate-out'); }
+            if (btn) { btn.classList.remove('animate-in'); btn.classList.add('animate-out'); }
+            setTimeout(function() {
+                window.location.href = 'pages/menu.html';
+            }, 450);
+        }
+        window.handleBeginTrailClick = handleBeginTrailClick;
+        
+        } catch (e) {
+            // If anything fails, at least the page should still render
+            console.error('Initialization error:', e);
+        }
+    </script>
+
+    <!-- Haptic Feedback Script -->
+    <script src="scripts/audio-manager-main.js"></script>
+    
+    <!-- Adobe Animate/CreateJS Animation Scripts -->
+    <script src="https://code.createjs.com/1.0.0/createjs.min.js"></script>
+    <script src="https://code.createjs.com/1.0.0/tweenjs.min.js"></script>
+    <script src="scripts/landing-ani.js"></script>
+    <script>
+      var canvas, stage, exportRoot, anim_container, dom_overlay_container, fnStartAnimation;
+      var animationLib, isReversing = false, pendingNavigation = null;
+      
+      function init() {
+        canvas = document.getElementById("canvas");
+        anim_container = document.getElementById("animation_container");
+        dom_overlay_container = document.getElementById("dom_overlay_container");
+        var comp = AdobeAn.getComposition("31388C4C00097D4D8EE56250BF6D718A");
+        animationLib = comp.getLibrary();
+        var loader = new createjs.LoadQueue(false);
+        loader.addEventListener("fileload", function(evt){handleFileLoad(evt,comp)});
+        loader.addEventListener("complete", function(evt){handleComplete(evt,comp)});
+        var lib = comp.getLibrary();
+        loader.loadManifest(lib.properties.manifest);
+      }
+      function handleFileLoad(evt, comp) {
+        var images = comp.getImages();	
+        if (evt && (evt.item.type == "image")) { images[evt.item.id] = evt.result; }	
+      }
+      function handleComplete(evt,comp) {
+        var lib = comp.getLibrary();
+        var ss = comp.getSpriteSheet();
+        var queue = evt.target;
+        var ssMetadata = lib.ssMetadata;
+        for(i = 0; i < ssMetadata.length; i++) {
+          ss[ssMetadata[i].name] = new createjs.SpriteSheet( {"images": [queue.getResult(ssMetadata[i].name)], "frames": ssMetadata[i].frames} )
+        }
+        exportRoot = new lib.landingani2();
+        stage = new lib.Stage(canvas);	
+        fnStartAnimation = function() {
+          stage.addChild(exportRoot);
+          createjs.Ticker.framerate = lib.properties.fps;
+          createjs.Ticker.addEventListener("tick", handleAnimationTick);
+          // Start playing the animation forward
+          exportRoot.play();
+        }	    
+        // Ensure container is full screen before makeResponsive runs
+        anim_container.style.width = window.innerWidth + 'px';
+        anim_container.style.height = window.innerHeight + 'px';
+        
+        // Use scaleType 1 (Math.min) to maintain aspect ratio - original setting
+        AdobeAn.makeResponsive(true,'both',true,2,[canvas,anim_container,dom_overlay_container]);
+        
+        // Re-apply container size after makeResponsive (it may override it)
+        setTimeout(function() {
+          anim_container.style.width = window.innerWidth + 'px';
+          anim_container.style.height = window.innerHeight + 'px';
+        }, 50);
+        
+        // Handle resize and orientation changes
+        window.addEventListener('resize', function() {
+          anim_container.style.width = window.innerWidth + 'px';
+          anim_container.style.height = window.innerHeight + 'px';
+        });
+        window.addEventListener('orientationchange', function() {
+          setTimeout(function() {
+            anim_container.style.width = window.innerWidth + 'px';
+            anim_container.style.height = window.innerHeight + 'px';
+          }, 200);
+        });	
+        AdobeAn.compositionLoaded(lib.properties.id);
+        
+        // Hide loading screen and start animation after delay (TEMPORARY: 5 second delay for testing)
+        var loadingScreen = document.getElementById('loadingScreen');
+        if (loadingScreen) {
+            setTimeout(function() {
+                // First fade out the loading text and SVG
+                if (loadingScreen) {
+                    loadingScreen.classList.add('fade-out-elements');
+                    
+                    // Then hide the loading screen after fade-out completes
+                    setTimeout(function() {
+                        if (loadingScreen) {
+                            loadingScreen.classList.add('hidden');
+                            // Remove from DOM after fade out completes
+                            setTimeout(function() {
+                                if (loadingScreen && loadingScreen.parentNode) {
+                                    loadingScreen.parentNode.removeChild(loadingScreen);
+                                }
+                            }, 500);
+                        }
+                    }, 500); // Wait for elements to fade out
+                }
+                
+                // Animate landing: animals first, then title and button
+                setTimeout(function() {
+                  animateLanding();
+                }, 100);
+            }, 2000); // 2 second loading delay
+        } else {
+            setTimeout(function() {
+              animateLanding();
+            }, 100);
+        }
+      }
+      
+      function animateLanding() {
+        var lion = document.querySelector('.landing-animal-lion');
+        var elephant = document.querySelector('.landing-animal-elephant');
+        var polarbear = document.querySelector('.landing-animal-polarbear');
+        var title = document.getElementById('landingTitle');
+        var btn = document.getElementById('beginTrailButton');
+        if (lion) lion.classList.add('animate-in');
+        if (elephant) elephant.classList.add('animate-in');
+        if (polarbear) polarbear.classList.add('animate-in');
+        setTimeout(function() {
+          if (title) title.classList.add('animate-in');
+          if (btn) btn.classList.add('animate-in');
+        }, 600);
+      }
+      
+      function handleBeginTrailClick() {
+        var title = document.getElementById('landingTitle');
+        var btn = document.getElementById('beginTrailButton');
+        if (btn) btn.disabled = true;
+        if (title) { title.classList.remove('animate-in'); title.classList.add('animate-out'); }
+        if (btn) { btn.classList.remove('animate-in'); btn.classList.add('animate-out'); }
+        setTimeout(function() {
+          window.location.href = 'pages/menu.html';
+        }, 450);
+      }
+      
+      // Function to keep GIF animating even when off-screen
+      function keepGifAnimating(imgElement) {
+        if (!imgElement) return;
+        
+        // Periodically force the browser to keep the GIF active
+        // by temporarily changing a property that forces a re-render
+        setInterval(function() {
+          if (imgElement && imgElement.classList.contains('animate-in')) {
+            // Force a reflow/repaint to keep GIF animating
+            var currentSrc = imgElement.src;
+            // Add a cache-busting parameter that doesn't actually change
+            imgElement.src = currentSrc.split('?')[0] + '?t=' + Date.now();
+            // Immediately restore to prevent flicker
+            setTimeout(function() {
+              if (imgElement) {
+                imgElement.src = currentSrc.split('?')[0];
+              }
+            }, 10);
+          }
+        }, 1000); // Check every second
+      }
+      
+      // Handle animation tick to check for reverse completion
+      function handleAnimationTick(event) {
+        if (isReversing && exportRoot) {
+          // Manually step backwards through frames
+          var currentFrame = exportRoot.currentFrame;
+          if (currentFrame > 0) {
+            // Go to previous frame (stop prevents forward auto-advance)
+            exportRoot.stop();
+            exportRoot.gotoAndStop(Math.max(0, currentFrame - 1));
+          } else {
+            // Reached the beginning, stop and navigate
+            isReversing = false;
+            exportRoot.stop();
+            if (pendingNavigation) {
+              window.location.href = pendingNavigation;
+            }
+          }
+        }
+        // Update stage (CreateJS handles normal forward playback automatically)
+        stage.update(event);
+      }
+      
+      
+      // Initialize animation when DOM is ready
+      if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+      } else {
+        init();
+      }
+    </script>
+
+    <!-- Google tag (gtag.js) - moved to end to avoid blocking page load -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-XT4SMTQCY2"></script>
+    <script>
+      try {
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+        gtag('config', 'G-XT4SMTQCY2');
+      } catch (e) {
+        console.warn('Google Analytics initialization failed:', e);
+      }
+    </script>
+  </body>
+</html>

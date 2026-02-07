@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+
+{% block title %}Interactive Map - CMS{% endblock %}
+
+{% block extra_head %}
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<style>
+    #map-container {
+        height: 600px;
+        width: 100%;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    .coordinate-display {
+        font-family: monospace;
+        background: #f8f9fa;
+        padding: 10px;
+        border-radius: 4px;
+        margin-top: 10px;
+    }
+    .map-preview-card {
+        position: sticky;
+        top: 20px;
+    }
+    /* Hide Leaflet attribution */
+    .leaflet-control-attribution {
+        display: none !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-12">
+        <h1>Interactive Map</h1>
+        <p class="text-muted">Click on the map to place or move item pins. Drag existing pins to reposition them.</p>
+    </div>
+</div>
+
+<div class="row">
+    <!-- Left Column: Controls and Info -->
+    <div class="col-md-6">
+        <!-- Map Controls -->
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Map Controls</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <label for="item-select" class="form-label">Select Item</label>
+                    <select class="form-select" id="item-select">
+                        <option value="">-- Create New Item --</option>
+                    </select>
+                </div>
+                
+                <div class="mb-3">
+                    <label for="radius-input" class="form-label">Radius (meters)</label>
+                    <input type="number" class="form-control" id="radius-input" value="10" min="1" max="100">
+                </div>
+                
+                <div class="mb-3">
+                    <label class="form-label">Coordinates</label>
+                    <div class="coordinate-display" id="coordinate-display">
+                        Click on map to set coordinates
+                    </div>
+                </div>
+                
+                <div class="d-flex gap-2 flex-wrap">
+                    <button class="btn btn-primary" id="save-location-btn" disabled>Save Location</button>
+                    <button class="btn btn-secondary" id="create-item-btn" disabled>Create New Item</button>
+                    <button class="btn btn-info" id="center-map-btn">Center Map</button>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Items List -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Items on Map</h5>
+            </div>
+            <div class="card-body">
+                <div id="items-list" class="table-responsive">
+                    <table class="table table-striped table-sm">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Latitude</th>
+                                <th>Longitude</th>
+                                <th>Radius</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="items-table-body">
+                            <tr>
+                                <td colspan="6" class="text-center">Loading...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Right Column: Map Preview -->
+    <div class="col-md-6">
+        <div class="card map-preview-card">
+            <div class="card-header">
+                <h5 class="mb-0">Map Preview</h5>
+            </div>
+            <div class="card-body">
+                <div id="map-container"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="{{ url_for('static', filename='js/map-manager.js') }}"></script>
+{% endblock %}
+

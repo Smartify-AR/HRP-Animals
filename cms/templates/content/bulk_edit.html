@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+
+{% block title %}Content Editor - CMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Content Editor</h1>
+        <p class="lead">Edit text content across items and badges</p>
+    </div>
+</div>
+
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Find & Replace</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('content.find_replace') }}">
+                    <div class="mb-3">
+                        <label for="find" class="form-label">Find</label>
+                        <input type="text" class="form-control" id="find" name="find" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="replace" class="form-label">Replace With</label>
+                        <input type="text" class="form-control" id="replace" name="replace">
+                    </div>
+                    <div class="mb-3">
+                        <label for="scope" class="form-label">Scope</label>
+                        <select class="form-select" id="scope" name="scope">
+                            <option value="all">All (Items & Badges)</option>
+                            <option value="items">Items Only</option>
+                            <option value="badges">Game Badges Only</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" 
+                            onclick="return confirm('This will replace text across all matching content. Continue?');">
+                        Find & Replace
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <div class="col-md-6">
+        <div class="card">
+            <div class="card-header">
+                <h5>Quick Links</h5>
+            </div>
+            <div class="card-body">
+                <ul class="list-unstyled">
+                    <li><a href="{{ url_for('item.list') }}">Edit Item Descriptions</a></li>
+                    <li><a href="{{ url_for('badge.list') }}">Edit Badge Descriptions</a></li>
+                    <li><a href="{{ url_for('map.index') }}">Set Item Locations</a></li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <h3>Content Statistics</h3>
+        <div class="row">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h4>{{ data.items|length }}</h4>
+                        <p class="text-muted mb-0">Items</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h4>{{ data.gameBadges|length }}</h4>
+                        <p class="text-muted mb-0">Game Badges</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h4>{{ (data.items|selectattr('location')|list)|length }}</h4>
+                        <p class="text-muted mb-0">Items with Location</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body text-center">
+                        <h4>{{ (data.items|selectattr('model')|selectattr('url')|list)|length }}</h4>
+                        <p class="text-muted mb-0">Items with 3D Models</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

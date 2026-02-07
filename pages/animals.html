@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
+    <title>Animals at the Tower - Animals</title>
+    <link rel="stylesheet" href="../styles/theme.css">
+    <link rel="stylesheet" href="../styles/menu.css">
+    <link rel="stylesheet" href="../styles/model-viewer.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background-color: #DDEEDE;
+            min-height: 100vh;
+            font-family: var(--font-family-primary);
+            color: var(--text-color);
+        }
+        .animals-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px 20px;
+            z-index: 10;
+            background: transparent;
+        }
+        .back-button {
+            position: absolute;
+            left: 20px;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--primary-color);
+            border: none;
+            box-shadow: 0 4px 0 0 var(--button-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .animals-title {
+            font-family: var(--Title-Condensed-Font), sans-serif;
+            font-size: clamp(20px, 5vw, 28px);
+            font-weight: 700;
+            font-stretch: condensed;
+            font-variation-settings: "wdth" 87.5, "wght" 700;
+            text-align: center;
+            color: var(--text-color);
+            text-transform: uppercase;
+        }
+        .animals-content {
+            padding: 80px 20px 100px;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        .animals-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .animal-card {
+            display: block;
+            background: transparent;
+            border: none;
+            border-radius: 0;
+            padding: 0;
+            text-align: center;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        .animal-card:active {
+            transform: scale(0.98);
+        }
+        .animal-card img {
+            width: 100%;
+            max-width: 160px;
+            height: auto;
+            margin: 0 auto;
+            display: block;
+            object-fit: contain;
+        }
+
+        /* Animal detail overlay – stays on animals page */
+        .animal-detail-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #DDEEDE;
+            z-index: 1000;
+            overflow-y: auto;
+            display: none;
+        }
+        .animal-detail-overlay.show {
+            display: block;
+        }
+        .animal-detail-overlay .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 1002;
+        }
+        .animal-detail-overlay .view-3d-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1002;
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            background: var(--primary-color);
+            border: none;
+            box-shadow: 0 4px 0 0 var(--button-shadow);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #FFFFFF;
+            font-size: 12px;
+            font-weight: 700;
+        }
+        .animal-detail-overlay .view-3d-button:active {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 0 var(--button-shadow);
+        }
+        .animal-detail-overlay .detail-title {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: var(--Title-Condensed-Font), sans-serif;
+            font-size: clamp(16px, 4vw, 22px);
+            font-weight: 700;
+            color: var(--text-color);
+            z-index: 1001;
+        }
+        .animal-detail-content {
+            padding: 90px 20px 40px;
+            max-width: 500px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        .animal-detail-content .detail-image {
+            width: 100%;
+            max-width: 280px;
+            height: auto;
+            margin: 0 auto 1.5rem;
+            display: block;
+            object-fit: contain;
+        }
+        .animal-detail-content .detail-name {
+            font-family: var(--font-family-primary);
+            font-size: 32px;
+            font-weight: 700;
+            color: var(--text-color);
+            margin-bottom: 0.5rem;
+        }
+        .animal-detail-content .detail-place {
+            font-size: 16px;
+            color: var(--text-color);
+            margin-bottom: 1rem;
+        }
+        .animal-detail-content .detail-description {
+            font-size: 16px;
+            line-height: 1.4;
+            color: var(--text-color);
+        }
+
+        /* Full-screen 3D model viewer overlay */
+        .animal-model-viewer-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: var(--background-alt, #F1DCB8);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .animal-model-viewer-overlay.hidden {
+            display: none !important;
+        }
+        .animal-model-viewer-overlay .mv-header {
+            flex-shrink: 0;
+            padding: 16px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 56px;
+            background: var(--primary-color);
+            position: relative;
+        }
+        .animal-model-viewer-overlay .mv-close {
+            position: absolute;
+            left: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            background: rgba(255,255,255,0.2);
+            border: none;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+        .animal-model-viewer-overlay .mv-close img {
+            transform: rotate(180deg);
+        }
+        .animal-model-viewer-overlay .mv-ar-wrap {
+            position: absolute;
+            right: 20px;
+            top: 50%;
+            transform: translateY(-50%);
+        }
+        .animal-model-viewer-overlay .mv-ar-button {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 44px;
+            height: 44px;
+            background: rgba(255,255,255,0.3);
+            border: none;
+            border-radius: 8px;
+            color: #fff;
+            font-family: var(--font-family-primary);
+            font-size: 16px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+        .animal-model-viewer-overlay .mv-ar-button:active {
+            background: rgba(255,255,255,0.5);
+        }
+        .animal-model-viewer-overlay .mv-ar-hint {
+            display: block;
+            font-size: 11px;
+            color: rgba(255,255,255,0.85);
+            white-space: nowrap;
+        }
+        .animal-model-viewer-overlay .mv-title {
+            font-family: var(--font-family-primary);
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: #fff;
+            margin: 0;
+        }
+        .animal-model-viewer-overlay .mv-container {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+            touch-action: manipulation;
+        }
+        .animal-model-viewer-overlay .mv-container model-viewer {
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+<body>
+    <header class="animals-header">
+        <button type="button" class="back-button" onclick="window.location.href='menu.html'" aria-label="Back to menu">
+            <img src="../assets/svg/arrow.svg" alt="">
+        </button>
+        <h1 class="animals-title">ANIMALS</h1>
+    </header>
+    <main class="animals-content">
+        <div id="animalsGrid" class="animals-grid"></div>
+    </main>
+
+    <!-- Animal detail overlay (on animals page, not badges) -->
+    <div id="animalDetailOverlay" class="animal-detail-overlay">
+        <button type="button" class="back-button" onclick="closeAnimalDetail()" aria-label="Back">
+            <img src="../assets/svg/arrow.svg" alt="">
+        </button>
+        <button type="button" class="view-3d-button" id="view3dButton" onclick="openModelViewer()" aria-label="View 3D model">3D</button>
+        <h2 class="detail-title">ANIMAL DETAILS</h2>
+        <div class="animal-detail-content">
+            <img id="detailImage" src="" alt="" class="detail-image">
+            <h3 id="detailName" class="detail-name"></h3>
+            <p id="detailPlace" class="detail-place"></p>
+            <p id="detailDescription" class="detail-description"></p>
+        </div>
+    </div>
+
+    <!-- Full-screen 3D model viewer -->
+    <div id="animalModelViewerOverlay" class="animal-model-viewer-overlay hidden">
+        <div class="mv-header">
+            <button type="button" class="mv-close" onclick="closeModelViewer()" aria-label="Close">
+                <img src="../assets/svg/arrow.svg" alt="" style="width:24px;height:24px;">
+            </button>
+            <h1 id="modelViewerTitle" class="mv-title">3D MODEL</h1>
+            <div class="mv-ar-wrap">
+                <button type="button" class="mv-ar-button" id="animalModelViewerARButton" onclick="launchAnimalAR()" style="display: none;" aria-label="View in AR">AR</button>
+                <span id="animalModelViewerARHint" class="mv-ar-hint" style="display: none;">AR requires HTTPS</span>
+            </div>
+        </div>
+        <div id="animalModelViewerContainer" class="mv-container"></div>
+    </div>
+
+    <script type="module" src="https://modelviewer.dev/node_modules/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <script src="../scripts/model-viewer.js"></script>
+    <script>
+        (function() {
+            function normalizePath(path) {
+                if (!path) return '';
+                if (path.startsWith('../../assets/')) return path.replace('../../assets/', '../assets/');
+                if (path.startsWith('../assets/')) return path;
+                return '../assets/' + path.replace(/^(\.\.\/)*assets\//, '');
+            }
+            function toAbsoluteModelUrl(url) {
+                if (!url) return url;
+                try {
+                    if (url.startsWith('http://') || url.startsWith('https://')) return url;
+                    return new URL(url, window.location.href).href;
+                } catch (e) {
+                    return url;
+                }
+            }
+
+            var currentDetailItem = null;
+
+            function buildGrid() {
+                fetch('../data/assets.json', { cache: 'no-cache' })
+                    .then(function(r) { return r.json(); })
+                    .then(function(data) {
+                        var items = Array.isArray(data.items) ? data.items : [];
+                        var grid = document.getElementById('animalsGrid');
+                        if (!grid) return;
+                        grid.innerHTML = '';
+                        items.forEach(function(item) {
+                            if (!item.name) return;
+                            var card = document.createElement('button');
+                            card.type = 'button';
+                            card.className = 'animal-card';
+                            card.setAttribute('data-item-id', item.id || '');
+                            var img = document.createElement('img');
+                            img.src = normalizePath(item.cardImage || item.badge && item.badge.icon || item.icon && item.icon.found);
+                            img.alt = item.name;
+                            img.onerror = function() { this.src = '../assets/Badge.png'; };
+                            card.appendChild(img);
+                            card.addEventListener('click', function() { openAnimalDetail(item); });
+                            grid.appendChild(card);
+                        });
+                    })
+                    .catch(function() {});
+            }
+
+            function openAnimalDetail(item) {
+                currentDetailItem = item;
+                var overlay = document.getElementById('animalDetailOverlay');
+                var imgEl = document.getElementById('detailImage');
+                var nameEl = document.getElementById('detailName');
+                var placeEl = document.getElementById('detailPlace');
+                var descEl = document.getElementById('detailDescription');
+                var btn3d = document.getElementById('view3dButton');
+                if (overlay) overlay.classList.add('show');
+                if (imgEl) {
+                    imgEl.src = normalizePath(item.cardImage || item.badge && item.badge.icon || '');
+                    imgEl.alt = item.name;
+                }
+                if (nameEl) nameEl.textContent = item.name || '';
+                if (placeEl) {
+                    placeEl.textContent = item.place ? 'Place: ' + item.place : '';
+                    placeEl.style.display = item.place ? 'block' : 'none';
+                }
+                if (descEl) descEl.textContent = item.description || '';
+                if (btn3d) btn3d.style.display = (item.model && item.model.url) ? 'flex' : 'none';
+            }
+
+            function closeAnimalDetail() {
+                currentDetailItem = null;
+                var overlay = document.getElementById('animalDetailOverlay');
+                if (overlay) overlay.classList.remove('show');
+            }
+
+            var currentModelViewer = null;
+
+            async function openModelViewer() {
+                if (!currentDetailItem || !currentDetailItem.model || !currentDetailItem.model.url) return;
+                var overlay = document.getElementById('animalModelViewerOverlay');
+                var container = document.getElementById('animalModelViewerContainer');
+                var titleEl = document.getElementById('modelViewerTitle');
+                var arBtn = document.getElementById('animalModelViewerARButton');
+                if (!overlay || !container) return;
+                container.innerHTML = '';
+                if (titleEl) titleEl.textContent = (currentDetailItem.name || '3D MODEL') + ' – 3D';
+                if (arBtn) arBtn.style.display = 'none';
+                var arHint = document.getElementById('animalModelViewerARHint');
+                if (arHint) arHint.style.display = window.isSecureContext ? 'none' : 'block';
+                overlay.classList.remove('hidden');
+                var modelUrl = normalizePath(currentDetailItem.model.url);
+                var usdzUrl = currentDetailItem.model.usdz ? normalizePath(currentDetailItem.model.usdz) : '';
+                var absoluteModelUrl = toAbsoluteModelUrl(modelUrl);
+                var absoluteUsdzUrl = usdzUrl ? toAbsoluteModelUrl(usdzUrl) : '';
+                if (currentModelViewer) {
+                    try { currentModelViewer.destroy(); } catch (e) {}
+                    currentModelViewer = null;
+                }
+                var isAndroid = /Android/i.test(navigator.userAgent);
+                var arModes = isAndroid ? 'webxr scene-viewer quick-look' : 'webxr scene-viewer quick-look';
+                if (typeof SmartifyModelViewer !== 'undefined') {
+                    try {
+                        currentModelViewer = await SmartifyModelViewer.init({
+                            container: container,
+                            modelSrc: absoluteModelUrl,
+                            iosSrc: absoluteUsdzUrl || undefined,
+                            arModes: arModes,
+                            arPlacementOffsetY: isAndroid ? 1 : 0
+                        });
+                        var viewer = currentModelViewer.getViewer && currentModelViewer.getViewer();
+                        if (viewer && arBtn) {
+                            viewer.addEventListener('ar-status', function(e) {
+                                if (e.detail.status === 'session-started') {
+                                    arBtn.style.display = 'none';
+                                } else if (e.detail.status === 'not-presenting' || e.detail.status === 'session-ended' || e.detail.status === 'failed') {
+                                    if (window.isSecureContext) arBtn.style.display = 'flex';
+                                } else if (window.isSecureContext && e.detail.available) {
+                                    arBtn.style.display = 'flex';
+                                }
+                            });
+                            viewer.addEventListener('load', function() {
+                                if (window.isSecureContext) arBtn.style.display = 'flex';
+                            });
+                            if (window.isSecureContext && viewer.canActivateAR) arBtn.style.display = 'flex';
+                        }
+                    } catch (e) {
+                        console.warn('Model viewer init failed:', e);
+                    }
+                }
+            }
+
+            function launchAnimalAR() {
+                if (currentModelViewer && currentModelViewer.getViewer) {
+                    var v = currentModelViewer.getViewer();
+                    if (v && typeof v.activateAR === 'function') v.activateAR();
+                }
+            }
+
+            function closeModelViewer() {
+                var overlay = document.getElementById('animalModelViewerOverlay');
+                var container = document.getElementById('animalModelViewerContainer');
+                var arBtn = document.getElementById('animalModelViewerARButton');
+                if (overlay) overlay.classList.add('hidden');
+                if (container) container.innerHTML = '';
+                if (arBtn) arBtn.style.display = 'none';
+                if (currentModelViewer) {
+                    try { currentModelViewer.destroy(); } catch (e) {}
+                    currentModelViewer = null;
+                }
+            }
+
+            window.closeAnimalDetail = closeAnimalDetail;
+            window.openModelViewer = openModelViewer;
+            window.closeModelViewer = closeModelViewer;
+            window.launchAnimalAR = launchAnimalAR;
+
+            buildGrid();
+        })();
+    </script>
+</body>
+</html>

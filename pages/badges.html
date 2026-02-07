@@ -1,0 +1,1678 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
+    <title>Animals at the Tower - Badges</title>
+    <link rel="stylesheet" href="../styles/theme.css">
+    <link rel="stylesheet" href="../styles/menu.css">
+    <link rel="stylesheet" href="../styles/settings.css">
+    <script src="../scripts/customer-io-helper.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        /* Dynamic viewport height support */
+        @supports (height: 100dvh) {
+            body {
+                height: 100dvh;
+            }
+        }
+
+        /* Fix for mobile Safari */
+        @supports (-webkit-touch-callout: none) {
+            body {
+                min-height: -webkit-fill-available;
+            }
+        }
+
+        body {
+            background: var(--background);
+            background-attachment: fixed;
+            min-height: 100vh;
+            position: relative;
+            overflow-x: hidden;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .back-button {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0px 4px 0px 0px var(--button-shadow);
+        }
+
+        .back-button:hover {
+            transform: translateY(2px);
+            box-shadow: 0px 2px 0px 0px var(--button-shadow);
+        }
+
+        .back-button:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .back-button img {
+            width: 24px;
+            height: 24px;
+        }
+
+        /* Settings Button */
+        .settings-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: var(--primary-color);
+            border: none;
+            border-radius: 12px;
+            width: 48px;
+            height: 48px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 10;
+            box-shadow: 0px 4px 0px 0px var(--button-shadow);
+        }
+
+        .settings-button:hover {
+            transform: translateY(2px);
+            box-shadow: 0px 2px 0px 0px var(--button-shadow);
+        }
+
+        .settings-button:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .settings-button img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .title {
+            font-family: var(--font-family-primary);
+            font-size: 27px;
+            font-weight: 700;
+            text-align: center;
+            color: var(--text-color);
+            margin-top: 20px;
+            width: 100%;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none; /* Allow clicks to pass through to button */
+            z-index: 1;
+        }
+
+        .title-unlock-button {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 200px;
+            height: 50px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            z-index: 2;
+            /* Make it invisible but clickable */
+            opacity: 0;
+        }
+
+        .badges-title-block {
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            text-align: center;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .badges-title-block .title {
+            position: static;
+            transform: none;
+            left: auto;
+            margin: 0;
+        }
+
+        .badges-title-tooltip {
+            margin-top: 6px;
+            padding: 6px 12px;
+            background: #FCF6EF;
+            border: 2px solid #E7D4A3;
+            border-radius: 12px;
+            box-shadow: 0 3px 0 0 #E7D4A3;
+            font-family: var(--font-family-primary);
+            font-size: 14px;
+            font-weight: 400;
+            color: #3A2E27;
+            max-width: 260px;
+            display: inline-block;
+            text-align: center;
+            line-height: 1.3;
+            transform-origin: top center;
+            animation: badges-title-tooltip-pop 0.28s ease-out 0.5s both;
+        }
+
+        @keyframes badges-title-tooltip-pop {
+            0% { opacity: 0; transform: scale(0.4); }
+            70% { transform: scale(1.05); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .scroll-for-more-tooltip {
+            position: fixed;
+            bottom: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 8px 16px;
+            background: #FCF6EF;
+            border: 2px solid #E7D4A3;
+            border-radius: 12px;
+            box-shadow: 0 3px 0 0 #E7D4A3;
+            font-family: var(--font-family-primary);
+            font-size: 14px;
+            font-weight: 400;
+            color: #3A2E27;
+            white-space: nowrap;
+            z-index: 5;
+            pointer-events: none;
+            animation: scroll-for-more-bounce 1.2s ease-in-out infinite;
+        }
+
+        .scroll-for-more-tooltip.scroll-for-more-tooltip--dismissed {
+            animation: none;
+            opacity: 0;
+            transform: translateX(-50%) translateY(12px);
+            transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+            pointer-events: none;
+        }
+
+        @keyframes scroll-for-more-bounce {
+            0%, 100% { transform: translateX(-50%) translateY(0); }
+            50% { transform: translateX(-50%) translateY(-6px); }
+        }
+
+        /* Orientation Warning Overlay */
+        .orientation-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .orientation-content {
+            background-color: #FCF6EF;
+            border: 3px solid #E7D4A3;
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            max-width: 300px;
+            margin: 1rem;
+            box-shadow: 0px 4px 0px 0px #E7D4A3;
+        }
+
+        .orientation-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+            animation: rotateToPortrait 2.5s ease-in-out infinite;
+            transform-origin: 0 100%;
+            display: inline-block;
+        }
+
+        .orientation-content h2 {
+            color: #C14400;
+            font-family: var(--font-family-primary);
+            font-weight: 700;
+            font-size: 2rem;
+            margin: 0 0 1rem 0;
+        }
+
+        .orientation-content p {
+            color: #333;
+            font-size: 1.1rem;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        @keyframes rotateToPortrait {
+            0% { transform: rotate(-90deg); opacity: 1; }
+            40% { transform: rotate(0deg); opacity: 1; }
+            60% { transform: rotate(0deg); opacity: 1; }
+            70% { transform: rotate(0deg); opacity: 0; }
+            71% { transform: rotate(-90deg); opacity: 0; }
+            80% { transform: rotate(-90deg); opacity: 1; }
+            100% { transform: rotate(-90deg); opacity: 1; }
+        }
+
+        /* Hidden class for orientation overlay */
+        .hidden {
+            display: none !important;
+        }
+
+        /* Badge Detail Popup Styling */
+        .badge-detail-popup {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: #FCF6EF;
+            z-index: 10000;
+            overflow: hidden;
+        }
+
+        .badge-detail-bg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(ellipse at 50% 30%, var(--background-cream, #F1DCB8) 0%, var(--background, #C0DCB2) 100%);
+            pointer-events: none;
+            z-index: 0;
+        }
+        .badge-detail-model-container {
+            width: 100%;
+            max-width: 280px;
+            height: 200px;
+            margin: 0 auto 1rem;
+            position: relative;
+        }
+        .badge-detail-model-container model-viewer {
+            width: 100%;
+            height: 100%;
+        }
+        .badge-detail-place {
+            font-family: var(--font-family-primary);
+            font-size: 16px;
+            color: var(--text-color);
+            margin: 0 0 1rem 0;
+            text-align: center;
+        }
+
+        .badge-detail-popup .back-button {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: var(--primary-color, #514848);
+            border: none;
+            border-radius: 8px;
+            width: 44px;
+            height: 44px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            z-index: 100;
+            pointer-events: auto;
+        }
+        .badge-detail-popup .back-button img {
+            width: 24px;
+            height: 24px;
+            filter: brightness(0) invert(1);
+        }
+
+        .badge-detail-popup .back-button img {
+            width: 24px;
+            height: 24px;
+        }
+
+        .badge-detail-popup .title {
+            font-family: var(--font-family-primary);
+            font-size: 27px;
+            font-weight: 700;
+            text-align: center;
+            color: var(--text-color);
+            margin-top: 20px;
+            width: 100%;
+            position: absolute;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 20;
+        }
+
+        .badge-detail-main {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding-top: 125px;
+            padding-left: 20px;
+            padding-right: 20px;
+            position: relative;
+            z-index: 10;
+        }
+
+        .badge-detail-icon {
+            width: 275px;
+            height: 275px;
+            object-fit: contain;
+            margin-bottom: 2rem;
+        }
+
+        .badge-detail-name {
+            font-family: var(--font-family-primary);
+            font-size: 48px;
+            font-weight: 700;
+            color: var(--text-color, #514848);
+            margin: 0 0 1rem 0;
+            text-align: center;
+            line-height: 100%;
+        }
+
+        .badge-detail-date {
+            font-family: var(--font-family-primary);
+            font-size: 16px;
+            color: var(--text-color, #514848);
+            margin: 0 0 1.5rem 0;
+            text-align: center;
+            line-height: 140%;
+        }
+
+        .badge-detail-description {
+            color: var(--Texts-textMain, #3A2E27);
+            text-align: center;
+            font-family: var(--font-family-primary);
+            font-size: 16px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 140%; /* 22.4px */
+            margin: 0 0 2rem 0;
+        }
+
+        .badge-detail-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            align-items: center;
+            width: 100%;
+            max-width: 300px;
+            margin-top: 1rem;
+        }
+
+        .badge-detail-popup .primaryButton {
+            display: flex;
+            width: 220px;
+            min-width: 104px;
+            padding: 12px 16px;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            border-radius: 12px;
+            background: var(--UI-primary, #C14400);
+            box-shadow: 0 4px 0 0 #962F00;
+            color: var(--Texts-textWhite, #FCEFE1);
+            text-align: center;
+            font-family: var(--font-family-primary) !important;
+            font-size: 24px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 120%;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s ease;
+        }
+
+        .badge-detail-popup .primaryButton:hover {
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 0 #962F00;
+        }
+
+        .badge-detail-popup .primaryButton:active {
+            transform: translateY(4px);
+            box-shadow: none;
+        }
+
+        .badge-detail-popup .secondaryButton {
+            display: flex;
+            width: 220px;
+            min-width: 104px;
+            padding: 12px 16px;
+            justify-content: center;
+            align-items: center;
+            gap: 8px;
+            border-radius: 12px;
+            background: var(--Background-main, #FCEFE1);
+            border: 2px solid var(--UI-primary, #E7D4A3);
+            box-shadow: 0 3px 0 0 var(--UI-primary, #E7D4A3);
+            color: var(--Texts-textMain, #3A2E27);
+            text-align: center;
+            font-family: var(--font-family-primary) !important;
+            font-size: 24px;
+            font-style: normal;
+            font-weight: 400;
+            line-height: 120%;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .badge-detail-popup .secondaryButton:hover {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 0 var(--UI-primary, #E7D4A3);
+        }
+
+        .badge-detail-popup .secondaryButton:active {
+            transform: translateY(3px);
+            box-shadow: none;
+        }
+
+        /* Responsive adjustments for badge detail popup */
+        @media (max-width: 480px) {
+            .badge-detail-content {
+                width: 95%;
+                padding: 1.5rem;
+            }
+            
+            .badge-detail-title {
+                font-size: 36px;
+            }
+            
+            .badge-detail-icon {
+                width: 206px;
+                height: 206px;
+            }
+            
+            .badge-detail-name {
+                font-size: 36px;
+            }
+            
+            .badge-detail-description {
+                font-size: 16px;
+            }
+        }
+
+        /* Enable vertical scrolling for badges */
+        body {
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        /* Badge Grid Styling */
+        .badge-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-auto-rows: 1fr;
+            gap: 5px 3px;
+            padding: 10px;
+            max-width: 600px;
+            margin: 0 auto;
+            margin-top: 140px;
+            padding-bottom: 40px;
+        }
+
+        .badge-item {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            aspect-ratio: 1;
+            position: relative;
+        }
+
+        .badge-image {
+            width: 90%;
+            height: 90%;
+            object-fit: contain;
+            max-width: 180px;
+            max-height: 180px;
+            transition: transform 0.2s ease;
+            box-sizing: border-box;
+        }
+
+        /* Collected badges are 25% bigger than placeholder badges */
+        .collected-badge {
+            opacity: 0;
+            transform: scale(0.3);
+            transform-origin: center center;
+            width: 90% !important;
+            height: 90% !important;
+            max-width: 180px !important;
+            max-height: 180px !important;
+            object-fit: contain !important;
+            will-change: transform, opacity;
+            backface-visibility: hidden;
+        }
+
+        /* Scale collected badges to be 25% bigger after animation */
+        .collected-badge.animation-complete {
+            opacity: 1 !important;
+            transform: scale(1.5625) !important;
+            transform-origin: center center;
+            width: 90% !important;
+            height: 90% !important;
+            max-width: 180px !important;
+            max-height: 180px !important;
+            object-fit: contain !important;
+        }
+
+        .badge-item:hover .badge-image {
+            transform: scale(1.20);
+        }
+
+        @keyframes badgeCollect {
+            0% {
+                opacity: 0;
+                transform: scale(0.3);
+            }
+            60% {
+                opacity: 1;
+                transform: scale(1.8);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1.5625);
+            }
+        }
+
+
+        /* Responsive adjustments */
+        @media (max-width: 480px) {
+            .badge-grid {
+                gap: 8px 4px;
+                padding: 15px;
+                margin-top: 100px;
+                padding-bottom: 40px;
+            }
+            
+            .badge-image {
+                max-width: 140px;
+                max-height: 140px;
+            }
+            
+            .collected-badge {
+                width: 90% !important;
+                height: 90% !important;
+                max-width: 140px !important;
+                max-height: 140px !important;
+                object-fit: contain !important;
+            }
+            
+            .collected-badge.animation-complete {
+                opacity: 1 !important;
+                transform: scale(1.5625) !important;
+                width: 90% !important;
+                height: 90% !important;
+                max-width: 140px !important;
+                max-height: 140px !important;
+                object-fit: contain !important;
+            }
+        }
+
+        @media (max-width: 360px) {
+            .badge-grid {
+                gap: 6px 3px;
+                padding: 10px;
+                margin-top: 80px;
+                padding-bottom: 40px;
+            }
+            
+            .badge-image {
+                max-width: 120px;
+                max-height: 120px;
+            }
+            
+            .collected-badge {
+                width: 90% !important;
+                height: 90% !important;
+                max-width: 120px !important;
+                max-height: 120px !important;
+                object-fit: contain !important;
+            }
+            
+            .collected-badge.animation-complete {
+                opacity: 1 !important;
+                transform: scale(1.5625) !important;
+                width: 90% !important;
+                height: 90% !important;
+                max-width: 120px !important;
+                max-height: 120px !important;
+                object-fit: contain !important;
+            }
+        }
+    </style>
+    
+</head>
+<body>
+    <!-- Orientation Warning Overlay -->
+    <div id="orientationOverlay" class="orientation-overlay hidden">
+        <div class="orientation-content">
+            <div class="orientation-icon">📱</div>
+            <h2>Please Rotate Your Device</h2>
+            <p>Hold your device in portrait mode for the best experience</p>
+        </div>
+    </div>
+
+    <button class="back-button" onclick="window.location.href='menu.html'" aria-label="Back to menu">
+        <img src="../assets/svg/arrow.svg" alt="Back">
+    </button>
+    
+    <button class="settings-button" id="settingsButton" aria-label="Settings">
+        <img src="../assets/Settings.png" alt="Settings">
+    </button>
+    <div class="badges-title-block">
+        <h1 class="title">Badges</h1>
+        <div class="badges-title-tooltip" aria-hidden="true">Tap on a Badge to see more details.</div>
+    </div>
+    <button class="title-unlock-button" id="titleUnlockButton" aria-label="Unlock all badges"></button>
+
+    <!-- Badge Grid Container -->
+    <div class="badge-grid" id="badgeGrid">
+        <!-- Badges will be dynamically generated from JSON -->
+    </div>
+
+    <div id="scrollForMoreTooltip" class="scroll-for-more-tooltip" aria-hidden="true">Scroll for more</div>
+
+    <!-- Badge / Animal Detail Popup -->
+    <div id="badgeDetailPopup" class="badge-detail-popup hidden">
+        <div class="badge-detail-bg"></div>
+        <button class="back-button" onclick="closeBadgeDetail()">
+            <img src="../assets/svg/close.svg" alt="Close">
+        </button>
+        <h1 class="title">ANIMAL DETAILS</h1>
+        
+        <div class="badge-detail-main">
+            <div id="badgeDetailModelContainer" class="badge-detail-model-container" style="display: none;"></div>
+            <img id="badgeDetailIcon" src="" alt="Badge" class="badge-detail-icon">
+            <h2 id="badgeDetailName" class="badge-detail-name"></h2>
+            <p id="badgeDetailDate" class="badge-detail-date"></p>
+            <p id="badgeDetailDescription" class="badge-detail-description"></p>
+            <p id="badgeDetailPlace" class="badge-detail-place" style="display: none;"></p>
+            <div class="badge-detail-buttons">
+                <button id="badgePlayGameButton" class="secondaryButton" onclick="playGame()" style="display: none;">Replay game</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../scripts/audio-manager-main.js"></script>
+    <script type="module" src="https://modelviewer.dev/node_modules/@google/model-viewer/dist/model-viewer.min.js"></script>
+    <script src="../scripts/model-viewer.js"></script>
+    <script>
+        // Orientation Detection
+        class OrientationManager {
+            constructor() {
+                this.orientationOverlay = document.getElementById('orientationOverlay');
+                
+                // Ensure overlay starts hidden
+                if (this.orientationOverlay) {
+                    this.orientationOverlay.classList.add('hidden');
+                }
+                
+                this.init();
+            }
+            
+            init() {
+                // Check initial orientation
+                this.checkOrientation();
+                
+                // Listen for orientation changes
+                window.addEventListener('orientationchange', () => {
+                    // Small delay to ensure the orientation change is complete
+                    setTimeout(() => this.checkOrientation(), 100);
+                });
+                
+                // Also listen for resize events as a backup
+                window.addEventListener('resize', () => {
+                    setTimeout(() => this.checkOrientation(), 100);
+                });
+            }
+            
+            checkOrientation() {
+                // Use screen orientation API if available, fallback to window dimensions
+                let isLandscape = false;
+                
+                if (screen.orientation) {
+                    // Use screen orientation API for more accurate detection
+                    isLandscape = screen.orientation.angle === 90 || screen.orientation.angle === 270;
+                } else {
+                    // Fallback to window dimensions with a small tolerance
+                    isLandscape = window.innerWidth > window.innerHeight + 50;
+                }
+                
+                if (isLandscape) {
+                    this.orientationOverlay.classList.remove('hidden');
+                } else {
+                    this.orientationOverlay.classList.add('hidden');
+                }
+            }
+        }
+
+        // Long-press handler for back button
+        // Title tap counter for unlock-all mode
+        let titleTapCount = 0;
+        let titleTapResetTimer = null;
+        const TITLE_TAP_RESET_TIME = 2000; // Reset counter after 2 seconds of no taps
+
+        function setupTitleUnlockButton() {
+            const titleButton = document.getElementById('titleUnlockButton');
+            if (!titleButton) return;
+            
+            titleButton.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Reset timer if it exists
+                if (titleTapResetTimer) {
+                    clearTimeout(titleTapResetTimer);
+                }
+                
+                titleTapCount++;
+                console.log('Title tapped:', titleTapCount, 'times');
+                
+                // If 4 taps, toggle unlock-all mode
+                if (titleTapCount >= 4) {
+                    toggleUnlockAllBadges();
+                    titleTapCount = 0;
+                    // Trigger haptic feedback
+                    if (typeof triggerHaptic === 'function') {
+                        triggerHaptic('medium');
+                    }
+                } else {
+                    // Set timer to reset counter if no more taps
+                    titleTapResetTimer = setTimeout(() => {
+                        titleTapCount = 0;
+                        console.log('Title tap counter reset');
+                    }, TITLE_TAP_RESET_TIME);
+                }
+            });
+        }
+
+        // Initialize orientation manager when page loads
+        function setupScrollForMoreTooltip() {
+            const tooltip = document.getElementById('scrollForMoreTooltip');
+            if (!tooltip || tooltip.classList.contains('scroll-for-more-tooltip--dismissed')) return;
+
+            function dismiss() {
+                tooltip.classList.add('scroll-for-more-tooltip--dismissed');
+                window.removeEventListener('scroll', dismiss, { passive: true });
+                window.removeEventListener('wheel', dismiss, { passive: true });
+                window.removeEventListener('touchmove', dismiss, { passive: true });
+            }
+
+            window.addEventListener('scroll', dismiss, { passive: true });
+            window.addEventListener('wheel', dismiss, { passive: true });
+            window.addEventListener('touchmove', dismiss, { passive: true });
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            new OrientationManager();
+            setupTitleUnlockButton();
+            setupScrollForMoreTooltip();
+            await initializeBadgeCollection();
+            addBadgeClickListeners();
+            
+            // Open badge detail from URL e.g. badges.html?badge=badge-lion
+            var params = new URLSearchParams(window.location.search);
+            var badgeParam = params.get('badge');
+            if (badgeParam && typeof showBadgeDetail === 'function') {
+                setTimeout(function() { showBadgeDetail(badgeParam); }, 300);
+            }
+        });
+
+        function normalizeAssetPath(path) {
+            if (!path) return path;
+            if (path.startsWith('/') || path.startsWith('http://') || path.startsWith('https://')) {
+                return path;
+            }
+            if (path.startsWith('../../assets/')) {
+                return path.replace('../../assets/', '../assets/');
+            }
+            if (path.startsWith('../assets/')) {
+                return path;
+            }
+            if (path.startsWith('assets/')) {
+                return '../' + path;
+            }
+            return '../assets/' + path.replace(/^(\.\.\/)*assets\//, '');
+        }
+
+        // Badge copy and icons come from data/assets.json (and CMS). Collected state from localStorage.collectedBadges.
+        // Generate badge items dynamically from JSON
+        async function generateBadgeItemsFromJSON() {
+            try {
+                // Get environment from localStorage (set by wayfinding page)
+                let environment = 'production';
+                try {
+                    const saved = localStorage.getItem('wayfinding-environment');
+                    if (saved === 'testing' || saved === 'production') {
+                        environment = saved;
+                    }
+                } catch (_) {
+                    // localStorage not available, use default
+                }
+                
+                const jsonFile = '../data/assets.json';
+                const res = await fetch(jsonFile, { cache: 'no-cache' });
+                const cfg = await res.json();
+                const items = Array.isArray(cfg.items) ? cfg.items : [];
+                const gameBadges = Array.isArray(cfg.gameBadges) ? cfg.gameBadges : [];
+                
+                const badgeGrid = document.getElementById('badgeGrid');
+                if (!badgeGrid) {
+                    console.error('Badge grid container not found');
+                    return {};
+                }
+                
+                // Clear existing badges
+                badgeGrid.innerHTML = '';
+                
+                // Create a map of badge ID to icon path
+                const badgeIconMap = {};
+                
+                // Helper function to create and append a badge item
+                function createBadgeItem(badgeId, badgeName, iconPath) {
+                    badgeIconMap[badgeId] = normalizeAssetPath(iconPath);
+                    
+                    const badgeItem = document.createElement('div');
+                    badgeItem.className = 'badge-item';
+                    badgeItem.setAttribute('data-badge', badgeId);
+                    
+                    // Placeholder image
+                    const placeholder = document.createElement('img');
+                    placeholder.src = '../assets/Badge.png';
+                    placeholder.alt = badgeName || 'Badge';
+                    placeholder.className = 'badge-image';
+                    
+                    // Collected badge image
+                    const collectedBadge = document.createElement('img');
+                    collectedBadge.src = badgeIconMap[badgeId];
+                    collectedBadge.alt = badgeName || 'Badge';
+                    collectedBadge.className = 'badge-image collected-badge';
+                    collectedBadge.style.display = 'none';
+                    
+                    badgeItem.appendChild(placeholder);
+                    badgeItem.appendChild(collectedBadge);
+                    return badgeItem;
+                }
+                
+                // First, add game badges (except streak, which goes last)
+                gameBadges.forEach(gameBadge => {
+                    if (gameBadge.id && gameBadge.icon && gameBadge.id !== 'streak') {
+                        const badgeItem = createBadgeItem(gameBadge.id, gameBadge.name, gameBadge.icon);
+                        badgeGrid.appendChild(badgeItem);
+                    }
+                });
+                
+                // Then, add item (collectable) badges
+                items.forEach(item => {
+                    if (item.badge && item.badge.id && item.badge.icon) {
+                        const badgeItem = createBadgeItem(item.badge.id, item.badge.name || item.name, item.badge.icon);
+                        badgeGrid.appendChild(badgeItem);
+                    }
+                });
+                
+                // Finally, add the Streak Master badge last
+                const streakBadge = gameBadges.find(gb => gb.id === 'streak');
+                if (streakBadge && streakBadge.icon) {
+                    const badgeItem = createBadgeItem(streakBadge.id, streakBadge.name, streakBadge.icon);
+                    badgeGrid.appendChild(badgeItem);
+                }
+                
+                return badgeIconMap;
+            } catch (err) {
+                console.error('Failed to generate badge items from JSON:', err);
+                return {};
+            }
+        }
+
+        // Load badge icons from JSON (kept for backwards compatibility, but now just returns the map)
+        async function loadBadgeIconsFromJSON() {
+            // Badge items are now generated dynamically, so this just needs to return the icon map
+            // The icons are already set during badge generation
+            const badgeIconMap = {};
+            document.querySelectorAll('.badge-item[data-badge]').forEach(badgeItem => {
+                const badgeId = badgeItem.getAttribute('data-badge');
+                const collectedBadge = badgeItem.querySelector('.collected-badge');
+                if (collectedBadge && collectedBadge.src) {
+                    badgeIconMap[badgeId] = collectedBadge.src;
+                }
+            });
+            return badgeIconMap;
+        }
+
+        // Testing mode: unlock all badges temporarily
+        let originalCollectedBadges = null;
+        let isUnlockAllMode = false;
+
+        async function toggleUnlockAllBadges() {
+            try {
+                if (!isUnlockAllMode) {
+                    // Store original data
+                    originalCollectedBadges = JSON.parse(localStorage.getItem('collectedBadges') || '[]');
+                    
+                    // Get all badge IDs from the page (after badges are generated)
+                    const allBadgeIds = Array.from(document.querySelectorAll('[data-badge]'))
+                        .map(item => item.getAttribute('data-badge'))
+                        .filter(id => id); // Remove null/undefined
+                    
+                    // Temporarily set all badges as collected (don't save to localStorage)
+                    // We'll use a session variable to track this
+                    sessionStorage.setItem('tempUnlockAllBadges', 'true');
+                    sessionStorage.setItem('originalCollectedBadges', JSON.stringify(originalCollectedBadges));
+                    sessionStorage.setItem('tempAllBadges', JSON.stringify(allBadgeIds));
+                    
+                    isUnlockAllMode = true;
+                    console.log('Unlocked all badges for testing');
+                    
+                    // Re-generate badges and re-initialize to show all badges
+                    try {
+                        await generateBadgeItemsFromJSON();
+                        await initializeBadgeCollection();
+                    } catch (e) {
+                        console.error('Error in generateBadgeItemsFromJSON or initializeBadgeCollection:', e);
+                    }
+                    // Re-add click listeners for newly visible badges
+                    try {
+                        addBadgeClickListeners();
+                    } catch (e) {
+                        console.error('Error in addBadgeClickListeners:', e);
+                    }
+                    // Re-add haptic feedback to buttons
+                    setTimeout(() => {
+                        try {
+                            addHapticToButtons();
+                        } catch (e) {
+                            console.error('Error in addHapticToButtons:', e);
+                        }
+                    }, 100);
+                } else {
+                    // Restore original data
+                    const original = JSON.parse(sessionStorage.getItem('originalCollectedBadges') || '[]');
+                    sessionStorage.removeItem('tempUnlockAllBadges');
+                    sessionStorage.removeItem('originalCollectedBadges');
+                    sessionStorage.removeItem('tempAllBadges');
+                    
+                    isUnlockAllMode = false;
+                    console.log('Restored original badge collection');
+                    
+                    // Re-generate badges and re-initialize to show only original badges
+                    try {
+                        await generateBadgeItemsFromJSON();
+                        await initializeBadgeCollection();
+                    } catch (e) {
+                        console.error('Error in generateBadgeItemsFromJSON or initializeBadgeCollection:', e);
+                    }
+                    // Re-add click listeners
+                    try {
+                        addBadgeClickListeners();
+                    } catch (e) {
+                        console.error('Error in addBadgeClickListeners:', e);
+                    }
+                    // Re-add haptic feedback to buttons
+                    setTimeout(() => {
+                        try {
+                            addHapticToButtons();
+                        } catch (e) {
+                            console.error('Error in addHapticToButtons:', e);
+                        }
+                    }, 100);
+                }
+            } catch (error) {
+                console.error('Error in toggleUnlockAllBadges:', error);
+                // Ensure haptic system is still available even if unlock fails
+                if (typeof window.triggerHaptic === 'undefined' && typeof triggerHaptic === 'function') {
+                    window.triggerHaptic = triggerHaptic;
+                }
+            }
+        }
+
+        // Badge Collection System
+        async function initializeBadgeCollection() {
+            // Badge items should already be generated, but if not, generate them
+            const existingBadges = document.querySelectorAll('.badge-item[data-badge]');
+            if (existingBadges.length === 0) {
+                await generateBadgeItemsFromJSON();
+            }
+            
+            // Check if we're in unlock-all mode
+            const tempUnlock = sessionStorage.getItem('tempUnlockAllBadges') === 'true';
+            let collectedBadges;
+            
+            if (tempUnlock) {
+                // Use all badges for testing
+                collectedBadges = JSON.parse(sessionStorage.getItem('tempAllBadges') || '[]');
+                isUnlockAllMode = true;
+            } else {
+                // Use actual collected badges from localStorage
+                collectedBadges = JSON.parse(localStorage.getItem('collectedBadges') || '[]');
+                isUnlockAllMode = false;
+            }
+            
+            // Show collected badges and hide placeholder badges
+            collectedBadges.forEach(badgeId => {
+                const badgeItem = document.querySelector(`[data-badge="${badgeId}"]`);
+                if (badgeItem) {
+                    const placeholder = badgeItem.querySelector('.badge-image:not(.collected-badge)');
+                    const collectedBadge = badgeItem.querySelector('.collected-badge');
+                    
+                    if (placeholder) {
+                        placeholder.style.display = 'none';
+                    }
+                    if (collectedBadge) {
+                        collectedBadge.style.display = 'block';
+                        // Mark as ready for animation
+                        collectedBadge.setAttribute('data-ready', 'true');
+                    }
+                }
+            });
+            
+            console.log('Collected badges from localStorage:', collectedBadges);
+            
+            // Only animate badges that haven't been animated before (newly collected)
+            const badgesPageAnimatedIds = JSON.parse(localStorage.getItem('badgesPageAnimatedIds') || '[]');
+            
+            setTimeout(() => {
+                const collectedBadgeElements = document.querySelectorAll('.collected-badge[data-ready="true"]');
+                const visibleBadges = Array.from(collectedBadgeElements).filter(badge => 
+                    badge.style.display !== 'none' && badge.offsetParent !== null
+                );
+                
+                // Split into already-seen (show in final state) and newly collected (animate)
+                const alreadyAnimated = [];
+                const newToAnimate = [];
+                visibleBadges.forEach(badge => {
+                    const badgeId = badge.closest('.badge-item')?.getAttribute('data-badge');
+                    if (badgeId && badgesPageAnimatedIds.includes(badgeId)) {
+                        alreadyAnimated.push(badge);
+                    } else {
+                        newToAnimate.push(badge);
+                    }
+                });
+                
+                // Show already-seen badges in final state without animating
+                alreadyAnimated.forEach(badge => {
+                    badge.classList.add('animation-complete');
+                });
+                
+                console.log('Badges already seen (no animation):', alreadyAnimated.length, 'New to animate:', newToAnimate.length);
+                
+                // Function to animate a single badge and then trigger the next (only for new ones)
+                function animateBadgeSequentially(badgeIndex) {
+                    if (badgeIndex >= newToAnimate.length) {
+                        console.log('All new badges animated');
+                        return;
+                    }
+                    
+                    const badge = newToAnimate[badgeIndex];
+                    const badgeId = badge.closest('.badge-item')?.getAttribute('data-badge');
+                    console.log('Animating new badge', badgeIndex, badgeId);
+                    
+                    // Reset badge state
+                    badge.style.animation = 'none';
+                    badge.style.opacity = '0';
+                    badge.style.transform = 'scale(0.3)';
+                    
+                    // Force reflow
+                    badge.offsetHeight;
+                    
+                    // Start animation
+                    badge.style.animation = 'badgeCollect 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) forwards';
+                    
+                    const handleAnimationEnd = () => {
+                        console.log('Badge animation ended:', badgeIndex);
+                        badge.classList.add('animation-complete');
+                        badge.removeEventListener('animationend', handleAnimationEnd);
+                        // Remember this badge so we don't animate again on next visit
+                        if (badgeId && !badgesPageAnimatedIds.includes(badgeId)) {
+                            badgesPageAnimatedIds.push(badgeId);
+                            localStorage.setItem('badgesPageAnimatedIds', JSON.stringify(badgesPageAnimatedIds));
+                        }
+                        setTimeout(() => {
+                            animateBadgeSequentially(badgeIndex + 1);
+                        }, 60);
+                    };
+                    
+                    badge.addEventListener('animationend', handleAnimationEnd);
+                }
+                
+                if (newToAnimate.length > 0) {
+                    animateBadgeSequentially(0);
+                }
+            }, 150);
+        }
+
+        // Function to add a badge (called from games)
+        function addBadge(badgeId) {
+            let collectedBadges = JSON.parse(localStorage.getItem('collectedBadges') || '[]');
+            if (!collectedBadges.includes(badgeId)) {
+                collectedBadges.push(badgeId);
+                localStorage.setItem('collectedBadges', JSON.stringify(collectedBadges));
+                
+                // Also sync with userData.progress.badges if userData exists
+                const userData = JSON.parse(localStorage.getItem('userData') || 'null');
+                if (userData) {
+                    if (!userData.progress) {
+                        userData.progress = { gamesCompleted: [], badges: [], highScores: {} };
+                    }
+                    if (!userData.progress.badges) {
+                        userData.progress.badges = [];
+                    }
+                    if (!userData.progress.badgeDates) {
+                        userData.progress.badgeDates = {};
+                    }
+                    if (!userData.progress.badges.includes(badgeId)) {
+                        userData.progress.badges.push(badgeId);
+                        // Store the collection date
+                        userData.progress.badgeDates[badgeId] = new Date().toISOString();
+                        localStorage.setItem('userData', JSON.stringify(userData));
+                    }
+                    
+                    // Update Customer.io when badge is collected (will work when snippet is added)
+                    if (typeof updateBadgeInCustomerIO === 'function') {
+                        updateBadgeInCustomerIO(badgeId);
+                    }
+                }
+            }
+        }
+
+        // Badge detail popup functionality
+        async function showBadgeDetail(badgeId) {
+            const popup = document.getElementById('badgeDetailPopup');
+            const icon = document.getElementById('badgeDetailIcon');
+            const name = document.getElementById('badgeDetailName');
+            const date = document.getElementById('badgeDetailDate');
+            const description = document.getElementById('badgeDetailDescription');
+            
+            // Load badge data from JSON
+            let gameBadgeDataMap = {};
+            let itemBadgeDataMap = {};
+            try {
+                // Get environment from localStorage (set by wayfinding page)
+                let environment = 'production';
+                try {
+                    const saved = localStorage.getItem('wayfinding-environment');
+                    if (saved === 'testing' || saved === 'production') {
+                        environment = saved;
+                    }
+                } catch (_) {
+                    // localStorage not available, use default
+                }
+                
+                const jsonFile = '../data/assets.json';
+                const res = await fetch(jsonFile, { cache: 'no-cache' });
+                const cfg = await res.json();
+                const items = Array.isArray(cfg.items) ? cfg.items : [];
+                const gameBadges = Array.isArray(cfg.gameBadges) ? cfg.gameBadges : [];
+                
+                // Load game badge data
+                gameBadges.forEach(gameBadge => {
+                    if (gameBadge.id) {
+                        let gamePath = gameBadge.gamePath;
+                        if (gamePath && gamePath.startsWith('../../games/')) {
+                            gamePath = gamePath.replace('../../games/', '../games/');
+                        }
+                        
+                        gameBadgeDataMap[gameBadge.id] = {
+                            name: gameBadge.name,
+                            description: gameBadge.description,
+                            icon: normalizeAssetPath(gameBadge.icon),
+                            gamePath: gamePath
+                        };
+                    }
+                });
+                
+                // Load item (collectable) badge data and map badge id -> full item
+                var itemByBadgeId = {};
+                items.forEach(item => {
+                    if (item.badge && item.badge.id) {
+                        let gamePath = item.badge.gamePath;
+                        if (gamePath && gamePath.startsWith('../../games/')) {
+                            gamePath = gamePath.replace('../../games/', '../games/');
+                        }
+                        itemByBadgeId[item.badge.id] = item;
+                        itemBadgeDataMap[item.badge.id] = {
+                            name: item.badge.name,
+                            description: item.badgeDescription || item.badge.description,
+                            icon: normalizeAssetPath(item.badge.icon),
+                            gamePath: gamePath
+                        };
+                    }
+                });
+            } catch (e) {
+                console.warn('Error loading badge data from JSON:', e);
+            }
+            
+            // Legacy badge data for backwards compatibility (fallback only)
+            const badgeData = {
+                // Game Badges
+                'sunflower': {
+                    icon: '../assets/badges/icons/bee-badge.svg',
+                    name: 'Garden Grower',
+                    description: 'A true garden grower! You\'ve planted, watered, and nurtured a beautiful home for the bees.',
+                    gamePath: '../games/sunflower-planter/index.html'
+                },
+                'walrus': {
+                    icon: '../assets/badges/icons/walrusFeeding-badge.svg',
+                    name: 'Fancy Feeder',
+                    description: 'Top marks for aim and timing! You\'ve become the walrus\'s favorite feeder.',
+                    gamePath: '../games/walrus-feeder/index.html'
+                },
+                'anemone': {
+                    icon: '../assets/badges/icons/clownfish-game-badge.svg',
+                    name: 'Careful Cleaner',
+                    description: 'Great care! You\'ve scrubbed the anemones spotless for the Clownfish.',
+                    gamePath: '../games/anemone-cleaning/index.html'
+                },
+                'photographer': {
+                    icon: '../assets/badges/icons/peacock-game-badge.svg',
+                    name: 'Proud Photographer',
+                    description: 'You captured the peacock\'s proudest moment.',
+                    gamePath: '../games/proud-photographer/index.html'
+                },
+                'jellyfish-juggler': {
+                    icon: '../assets/badges/icons/jellyfish-badge.svg',
+                    name: 'Jellyfish Juggler',
+                    description: 'Nice shot! You spotted the Moon Jellyfish in the crowd and took a fabulous photo!',
+                    gamePath: '../games/jellyfish-jumble/index.html'
+                },
+                // Animal AR Badges
+                'peacock': {
+                    icon: '../assets/badges/icons/peacock-badge.svg',
+                    name: 'Peacock Spotter',
+                    description: 'You found this collectable! Add your own description in the CMS or badge data.',
+                    gamePath: '../games/proud-photographer/index.html'
+                },
+                'walrus-ar': {
+                    icon: '../assets/badges/icons/walrus-badge.svg',
+                    name: 'Walrus Finder',
+                    description: 'You discovered the walrus! Great tracking skills on your adventure.',
+                    gamePath: '../games/walrus-feeder/index.html'
+                },
+                'koala': {
+                    icon: '../assets/badges/icons/Koala.svg',
+                    name: 'Koala Discoverer',
+                    description: 'You found the koala! Your keen eye spotted this hidden treasure.'
+                },
+                'bee-ar': {
+                    icon: '../assets/badges/icons/bee-badge.svg',
+                    name: 'Bee Hunter',
+                    description: 'You found the bee! A tiny but important discovery on your journey.',
+                    gamePath: '../games/sunflower-planter/index.html'
+                },
+                'clownfish-ar': {
+                    icon: '../assets/badges/icons/clownfish-badge.svg',
+                    name: 'Clownfish Seeker',
+                    description: 'You found the clownfish! A colorful addition to your collection.',
+                    gamePath: '../games/anemone-cleaning/index.html'
+                },
+                'platypus': {
+                    icon: '../assets/badges/icons/platypus.svg',
+                    name: 'Platypus Explorer',
+                    description: 'You found the platypus! One of nature\'s most unique creatures.'
+                },
+                'cephalopod': {
+                    icon: '../assets/badges/icons/Shelled Cephalopod.svg',
+                    name: 'Cephalopod Collector',
+                    description: 'You found the cephalopod! A fascinating marine discovery.'
+                },
+                'stag-beetle': {
+                    icon: '../assets/badges/icons/Stag Beetle.svg',
+                    name: 'Beetle Spotter',
+                    description: 'You found the stag beetle! A small but impressive find.'
+                },
+                'snowy-owl': {
+                    icon: '../assets/badges/icons/snowy owl.svg',
+                    name: 'Owl Watcher',
+                    description: 'You found the snowy owl! A wise and majestic discovery.'
+                },
+                'orangutan': {
+                    icon: '../assets/badges/icons/orangutan.svg',
+                    name: 'Orangutan Tracker',
+                    description: 'You found the orangutan! A great ape discovery on your adventure.'
+                },
+                'jellyfish-ar': {
+                    icon: '../assets/badges/icons/jellyfish-badge.svg',
+                    name: 'Jellyfish Finder',
+                    description: 'You found the jellyfish! A graceful and mesmerizing discovery.'
+                },
+                'robin': {
+                    icon: '../assets/badges/icons/Robin.svg',
+                    name: 'Robin Seeker',
+                    description: 'You found the robin! A cheerful bird to add to your collection.'
+                },
+                'butterfly': {
+                    icon: '../assets/badges/icons/butterfly-badge.svg',
+                    name: 'Butterfly Spotter',
+                    description: 'You found the butterfly! A beautiful and delicate discovery.'
+                },
+                'crocodile': {
+                    icon: '../assets/badges/icons/crocodile-badge.svg',
+                    name: 'Crocodile Finder',
+                    description: 'You found this collectable! Add your own description in the CMS or badge data.'
+                },
+                'dodo': {
+                    icon: '../assets/badges/icons/Dodo.svg',
+                    name: 'Dodo Discoverer',
+                    description: 'You found the dodo! Large and flightless, this extinct bird is related to pigeons.'
+                },
+                'fox': {
+                    icon: '../assets/badges/icons/fox-badge.svg',
+                    name: 'Fox Finder',
+                    description: 'You found the fox! This clever creature enjoys sneaking through gardens at night.'
+                },
+                'grass-snake': {
+                    icon: '../assets/badges/icons/grass snake-badge.svg',
+                    name: 'Snake Spotter',
+                    description: 'You found the grass snake! Experts at slithering and sliding around, grass snakes are also great swimmers.'
+                },
+                'ostrich': {
+                    icon: '../assets/badges/icons/ostrich-badge.svg',
+                    name: 'Ostrich Watcher',
+                    description: 'You found the ostrich! The fastest bird on land, ostriches are always ready to dash across the plains.'
+                },
+                'puffin': {
+                    icon: '../assets/badges/icons/Puffin.svg',
+                    name: 'Puffin Spotter',
+                    description: 'You found the puffin! These seabirds spend much of their life hunting for fish at sea.'
+                },
+                'tiger-cub': {
+                    icon: '../assets/badges/icons/tiger_cub-badge.svg',
+                    name: 'Tiger Cub Finder',
+                    description: 'You found the tiger cub! Playful and curious, this little cub is learning the ways of the jungle.'
+                },
+                'velociraptor': {
+                    icon: '../assets/badges/icons/velociraptor.svg',
+                    name: 'Velociraptor Hunter',
+                    description: 'You found the velociraptor! A prehistoric predator discovery.'
+                }
+            };
+            
+            // Combine game badges and item badges - game badges take precedence
+            const allBadgeData = { ...itemBadgeDataMap, ...gameBadgeDataMap };
+            
+            // Use badge data from JSON (game badges or item badges), fallback to legacy badgeData
+            const badgeFromJson = allBadgeData[badgeId];
+            const badgeInfo = badgeFromJson || badgeData[badgeId];
+            
+            if (badgeInfo) {
+                var ownerItem = typeof itemByBadgeId !== 'undefined' ? itemByBadgeId[badgeId] : null;
+                // Get icon path from JSON or fallback to badgeData
+                let iconPath = '';
+                if (badgeFromJson && badgeFromJson.icon) {
+                    iconPath = badgeFromJson.icon;
+                    if (iconPath.startsWith('../../assets/')) {
+                        iconPath = iconPath.replace('../../assets/', '../assets/');
+                    }
+                } else {
+                    iconPath = badgeInfo.icon || '';
+                }
+                icon.src = iconPath;
+                name.textContent = (ownerItem && ownerItem.name ? ownerItem.name : badgeInfo.name || '').toUpperCase();
+                
+                // Show 3D model if item has model, else show badge icon
+                var modelContainer = document.getElementById('badgeDetailModelContainer');
+                if (modelContainer) {
+                    modelContainer.innerHTML = '';
+                    if (ownerItem && ownerItem.model && ownerItem.model.url) {
+                        icon.style.display = 'none';
+                        modelContainer.style.display = 'block';
+                        var modelUrl = normalizeAssetPath(ownerItem.model.url);
+                        var usdzUrl = ownerItem.model.usdz ? normalizeAssetPath(ownerItem.model.usdz) : '';
+                        if (typeof SmartifyModelViewer !== 'undefined') {
+                            SmartifyModelViewer.init({
+                                container: modelContainer,
+                                modelSrc: modelUrl,
+                                iosSrc: usdzUrl || undefined
+                            }).catch(function() {});
+                        }
+                    } else {
+                        modelContainer.style.display = 'none';
+                        icon.style.display = 'block';
+                    }
+                }
+                
+                // Place (e.g. Tower of London)
+                var placeEl = document.getElementById('badgeDetailPlace');
+                if (placeEl) {
+                    if (ownerItem && ownerItem.place) {
+                        placeEl.textContent = 'Place: ' + ownerItem.place;
+                        placeEl.style.display = 'block';
+                    } else {
+                        placeEl.style.display = 'none';
+                    }
+                }
+                
+                // Get the actual collection date from userData
+                let collectionDate = null;
+                try {
+                    const userData = JSON.parse(localStorage.getItem('userData') || 'null');
+                    if (userData && userData.progress && userData.progress.badgeDates && userData.progress.badgeDates[badgeId]) {
+                        collectionDate = new Date(userData.progress.badgeDates[badgeId]);
+                    }
+                } catch (e) {
+                    console.warn('Error retrieving badge date:', e);
+                }
+                
+                // Format and display the date
+                const monthNames = ["January", "February", "March", "April", "May", "June",
+                    "July", "August", "September", "October", "November", "December"];
+                
+                if (collectionDate && !isNaN(collectionDate.getTime())) {
+                    const month = monthNames[collectionDate.getMonth()];
+                    const day = collectionDate.getDate();
+                    const year = collectionDate.getFullYear();
+                    date.textContent = 'Found date: ' + month + ' ' + day + ', ' + year;
+                } else {
+                    const currentDate = new Date();
+                    const month = monthNames[currentDate.getMonth()];
+                    const day = currentDate.getDate();
+                    const year = currentDate.getFullYear();
+                    date.textContent = 'Found date: ' + month + ' ' + day + ', ' + year;
+                }
+                
+                description.textContent = (ownerItem && ownerItem.description) ? ownerItem.description : (badgeInfo.description || '');
+                
+                // Show/hide Play Game button based on gamePath (from JSON or badgeData)
+                const playGameButton = document.getElementById('badgePlayGameButton');
+                let gamePath = badgeInfo.gamePath;
+                
+                if (gamePath && gamePath.startsWith('../../games/')) {
+                    gamePath = gamePath.replace('../../games/', '../games/');
+                } else if (gamePath && gamePath.startsWith('./games/')) {
+                    gamePath = gamePath.replace('./games/', '../games/');
+                }
+                
+                if (gamePath && playGameButton) {
+                    playGameButton.style.display = 'flex';
+                    playGameButton.setAttribute('data-game-path', gamePath);
+                } else if (playGameButton) {
+                    playGameButton.style.display = 'none';
+                }
+                
+                popup.classList.remove('hidden');
+            }
+        }
+
+        function playGame() {
+            // Trigger haptic feedback
+            if (typeof triggerHaptic === 'function') {
+                triggerHaptic('single');
+            }
+            const playGameButton = document.getElementById('badgePlayGameButton');
+            const gamePath = playGameButton.getAttribute('data-game-path');
+            if (gamePath) {
+                window.location.href = gamePath;
+            }
+        }
+
+        function closeBadgeDetail() {
+            if (typeof triggerHaptic === 'function') {
+                triggerHaptic('single');
+            }
+            var popup = document.getElementById('badgeDetailPopup');
+            if (popup) popup.classList.add('hidden');
+            var modelContainer = document.getElementById('badgeDetailModelContainer');
+            if (modelContainer) modelContainer.innerHTML = '';
+        }
+
+        // Add click event listeners to collected badges using event delegation
+        let badgeClickListenerAdded = false;
+        function addBadgeClickListeners() {
+            // Use event delegation on the badge grid container (only add once)
+            if (!badgeClickListenerAdded) {
+                const badgeGrid = document.querySelector('.badge-grid');
+                if (badgeGrid) {
+                    badgeGrid.addEventListener('click', function(e) {
+                        // Check if clicked element is a collected badge
+                        const collectedBadge = e.target.closest('.collected-badge');
+                        if (collectedBadge) {
+                            // Trigger haptic feedback
+                            if (typeof triggerHaptic === 'function') {
+                                triggerHaptic('single');
+                            }
+                            // Find the parent badge item to get the data-badge attribute
+                            const badgeItem = collectedBadge.closest('.badge-item');
+                            if (badgeItem) {
+                                const badgeId = badgeItem.getAttribute('data-badge');
+                                if (badgeId) {
+                                    showBadgeDetail(badgeId);
+                                }
+                            }
+                        }
+                    });
+                    badgeClickListenerAdded = true;
+                }
+            }
+            
+            // Add cursor pointer to all collected badges (update on each call)
+            const collectedBadges = document.querySelectorAll('.collected-badge');
+            collectedBadges.forEach(badge => {
+                badge.style.cursor = 'pointer';
+            });
+        }
+        
+        // Add haptic feedback to buttons with onclick
+        function addHapticToButtons() {
+            try {
+                document.querySelectorAll('button[onclick]').forEach(button => {
+                    const originalOnclick = button.getAttribute('onclick');
+                    if (originalOnclick && !originalOnclick.includes('triggerHaptic')) {
+                        button.onclick = function(e) {
+                            try {
+                                if (typeof triggerHaptic === 'function') {
+                                    triggerHaptic('single');
+                                }
+                            } catch (hapticError) {
+                                console.warn('Haptic feedback error:', hapticError);
+                            }
+                            try {
+                                eval(originalOnclick);
+                            } catch (onclickError) {
+                                console.error('Error executing onclick:', onclickError);
+                            }
+                        };
+                    }
+                });
+            } catch (error) {
+                console.error('Error in addHapticToButtons:', error);
+            }
+        }
+        
+        // Call on page load
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', addHapticToButtons);
+        } else {
+            addHapticToButtons();
+        }
+    </script>
+
+    <!-- Settings Overlay -->
+    <div class="settings-overlay" id="settingsOverlay">
+        <div class="settings-dialog">
+            <button class="close-button" aria-label="Close settings">
+                <img src="../assets/svg/close.svg" alt="Close">
+            </button>
+            <h2>Settings</h2>
+            <h3>Hello, <span id="userNickname">Guest</span>!</h3>
+            <div class="settings-controls">
+                <button id="hapticsToggle" class="settings-icon-button" aria-label="Toggle Haptics">
+                    <img src="../assets/Haptics.png" alt="Haptics" class="settings-icon-img">
+                </button>
+                <button id="audioToggle" class="settings-icon-button" aria-label="Toggle Audio">
+                    <img src="../assets/Unmute.png" alt="Sound" class="settings-icon-img">
+                </button>
+                <button id="musicToggle" class="settings-icon-button" aria-label="Toggle Music">
+                    <img src="../assets/Note.png" alt="Music" class="settings-icon-img">
+                </button>
+            </div>
+            <div class="settings-actions">
+                <button class="how-to-play-button" style="display: none;">
+                    <span>?</span>
+                    How to play
+                </button>
+                <button type="button" class="sensor-permissions-button" id="sensorPermissionsButton" aria-label="Sensor permissions"><img src="../assets/Sensors.svg" alt="Permissions"></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sensor permissions overlay -->
+    <div class="settings-overlay" id="sensorPermissionsOverlay">
+        <div class="settings-dialog">
+            <button class="close-button" aria-label="Close">
+                <img src="../assets/svg/close.svg" alt="Close">
+            </button>
+            <h2>Sensor permissions</h2>
+            <div class="sensor-permission-row">
+                <span class="sensor-permission-label">Camera</span>
+                <span class="sensor-permission-state" id="sensorStateCamera"><img src="" alt="" role="presentation"></span>
+                <button type="button" class="sensor-permission-request" id="sensorPermissionCamera" aria-label="Request access"><img src="../assets/PlayAgain.png" alt=""></button>
+            </div>
+            <div class="sensor-permission-row">
+                <span class="sensor-permission-label">Location (GPS)</span>
+                <span class="sensor-permission-state" id="sensorStateLocation"><img src="" alt="" role="presentation"></span>
+                <button type="button" class="sensor-permission-request" id="sensorPermissionLocation" aria-label="Request access"><img src="../assets/PlayAgain.png" alt=""></button>
+            </div>
+            <div class="sensor-permission-row">
+                <span class="sensor-permission-label">Device orientation</span>
+                <span class="sensor-permission-state" id="sensorStateMotion"><img src="" alt="" role="presentation"></span>
+                <button type="button" class="sensor-permission-request" id="sensorPermissionMotion" aria-label="Request access"><img src="../assets/PlayAgain.png" alt=""></button>
+            </div>
+        </div>
+    </div>
+
+    <script src="../scripts/audio-manager-main.js"></script>
+    <script src="../scripts/settings.js"></script>
+    <script>
+        // Initialize settings module without how to play
+        if (typeof initSettings === 'function') {
+            initSettings({
+                onHowToPlay: function() {
+                    // No how to play on this page
+                },
+                nicknameElementId: 'userNickname'
+            });
+        }
+        
+        // Setup settings button
+        const settingsButton = document.getElementById('settingsButton');
+        if (settingsButton && typeof showSettings === 'function') {
+            settingsButton.addEventListener('click', showSettings);
+        }
+    </script>
+</body>
+</html> 

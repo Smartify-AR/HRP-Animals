@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block title %}Leaderboard Users - CMS{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h1>Leaderboard User Management</h1>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="alert alert-info">
+            <h5>Integration Pending</h5>
+            <p>{{ message }}</p>
+            <p class="mb-0">
+                Once the leaderboard backend API is integrated, you will be able to:
+            </p>
+            <ul>
+                <li>View all users and their progress</li>
+                <li>Search and filter users</li>
+                <li>View detailed user information</li>
+                <li>Remove or debug user data</li>
+                <li>Export user statistics</li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h5>User List</h5>
+            </div>
+            <div class="card-body">
+                <p class="text-muted">User data will appear here once the backend is connected.</p>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>User ID</th>
+                            <th>Nickname</th>
+                            <th>Badge Count</th>
+                            <th>Last Seen</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td colspan="5" class="text-center text-muted">
+                                No users available (backend integration pending)
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
