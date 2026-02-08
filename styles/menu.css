@@ -6,10 +6,41 @@
     box-sizing: border-box;
 }
 
-/* Dynamic viewport height support */
+/* Lock scroll on menu/map pages: html and body must not scroll (Samsung, iOS, etc.) */
+html {
+    overflow: hidden;
+    height: 100%;
+    position: fixed;
+    width: 100%;
+    left: 0;
+    top: 0;
+}
+
+@supports (height: 100dvh) {
+    html {
+        height: 100dvh;
+    }
+}
+
+body {
+    font-family: var(--font-family-primary);
+    background-color: var(--background-alt);
+    background-image: none;
+    min-height: 100vh;
+    height: 100%;
+    max-height: 100%;
+    color: var(--text-color);
+    position: relative;
+    overflow: hidden;
+    overscroll-behavior: none;
+    -webkit-overflow-scrolling: auto;
+}
+
 @supports (height: 100dvh) {
     body, .menu-container {
         height: 100dvh;
+        min-height: 100dvh;
+        max-height: 100dvh;
     }
 }
 
@@ -20,21 +51,16 @@
     }
 }
 
-body {
-    font-family: var(--font-family-primary);
-    background-color: var(--background-alt);
-    background-image: none;
-    min-height: 100vh;
-    color: var(--text-color);
-    position: relative;
-    overflow-x: hidden;
-}
-
 .menu-container {
     min-height: 100vh;
+    height: 100vh;
+    height: 100dvh;
     display: flex;
     flex-direction: column;
     width: 100%;
+    overflow: hidden;
+    flex: 1;
+    min-height: 0;
 }
 
 .content-wrapper {
@@ -52,7 +78,7 @@ body {
     justify-content: flex-start;
     align-items: center;
     width: 100%;
-    padding-top: 10vh;
+    padding-top: clamp(8px, 6vh, 10vh);
     padding-bottom: 0;
     min-height: 0;
 }
@@ -101,34 +127,32 @@ body {
 
 .subtitle {
     font-family: var(--font-family-primary);
-    font-size: 20px;
+    font-size: clamp(16px, 4.5vw, 20px);
     font-weight: 600;
     text-align: center;
     line-height: 120%;
     letter-spacing: 0px;
     vertical-align: middle;
     margin-bottom: 12px;
-    padding: 0 6px;
-    width: 100vw;
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
+    padding: 0 16px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 .description {
     font-family: var(--font-family-primary);
-    font-size: 15px;
+    font-size: clamp(13px, 3.8vw, 15px);
     font-weight: 400;
     text-align: center;
     line-height: 130%;
     letter-spacing: 0px;
     vertical-align: middle;
     margin-bottom: 24px;
-    padding: 0 6px;
-    width: 100vw;
-    position: relative;
-    left: 50%;
-    transform: translateX(-50%);
+    padding: 0 16px;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
 }
 
 /* Button Container */
@@ -139,7 +163,9 @@ body {
     width: 100%;
     max-width: 400px;
     margin: 0 auto;
-    padding: 0 20px;
+    padding-left: max(16px, var(--safe-area-left, 0px));
+    padding-right: max(16px, var(--safe-area-right, 0px));
+    box-sizing: border-box;
 }
 
 .main-button, .secondary-button, .full-button {
@@ -241,7 +267,8 @@ footer {
     justify-content: center;
     align-items: center;
     padding: 0 20px;
-    margin-bottom: 200px;
+    padding-bottom: calc(24px + var(--safe-area-bottom, 0px));
+    margin-bottom: 0;
 }
 
 .footer-logo {
@@ -252,8 +279,8 @@ footer {
 /* Settings Button */
 .settings-button {
     position: fixed;
-    top: 20px;
-    right: 20px;
+    top: max(12px, var(--safe-area-top, 0px));
+    right: max(12px, var(--safe-area-right, 0px));
     background: var(--primary-color);
     border: none;
     border-radius: 12px;
@@ -285,8 +312,8 @@ footer {
 /* Back Button */
 .back-button {
     position: fixed;
-    top: 20px;
-    left: 20px;
+    top: max(12px, var(--safe-area-top, 0px));
+    left: max(12px, var(--safe-area-left, 0px));
     background: var(--primary-color);
     border: none;
     border-radius: 12px;
@@ -329,7 +356,7 @@ footer {
 @media (max-width: 360px) {
     .subtitle,
     .description {
-        padding: 0 6px;
+        padding: 0 12px;
     }
 }
 

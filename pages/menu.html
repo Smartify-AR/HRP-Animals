@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <link rel="icon" href="../assets/favicon.ico" type="image/x-icon">
     <title>Animals at the Tower - Menu</title>
     
@@ -165,13 +165,13 @@
         /* Position title at top between buttons – one line, readable size */
         .title {
             position: fixed !important;
-            top: 20px !important;
+            top: max(20px, calc(20px + var(--safe-area-top, 0px))) !important;
             left: 50% !important;
             transform: translateX(-50%) !important;
             z-index: 5 !important;
             margin-bottom: 0 !important;
             font-size: clamp(20px, 5vw, 28px) !important;
-            max-width: calc(100vw - 160px);
+            max-width: min(calc(100% - 120px), 320px);
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -179,7 +179,7 @@
 
         /* Adjust content positioning for fixed title */
         .content-wrapper {
-            padding-top: 80px !important;
+            padding-top: calc(60px + var(--safe-area-top, 0px)) !important;
         }
 
         /* Responsive Design for Menu Page */
@@ -230,7 +230,7 @@
             }
             
             .subtitle {
-                font-size: 28px !important;
+                font-size: 16px !important;
                 margin-bottom: 12px !important;
             }
             

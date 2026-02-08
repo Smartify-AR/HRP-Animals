@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -518,6 +518,8 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
+            padding: var(--safe-area-top, 0) var(--safe-area-right, 0) var(--safe-area-bottom, 0) var(--safe-area-left, 0);
+            box-sizing: border-box;
         }
         @supports (height: 100dvh) {
             .landing-overlay { min-height: 100dvh; }
@@ -526,20 +528,27 @@
             margin-top: 0 !important;
             margin-bottom: 0 !important;
             justify-content: flex-start;
-            padding-top: 18vh;
+            padding-top: clamp(12px, 12vh, 18vh);
+            padding-left: 16px;
+            padding-right: 16px;
             padding-bottom: 0;
             flex: 1;
             min-height: 0;
             display: flex;
             flex-direction: column;
             align-items: center;
+            max-width: 100%;
         }
         .landing-overlay .onboarding-content #landingTitle {
             flex: 0 0 auto;
         }
         .landing-overlay .onboarding-content #beginTrailButton {
             margin-top: auto;
-            margin-bottom: 12vh;
+            margin-bottom: clamp(12px, 8vh, 12vh);
+        }
+        @media (max-height: 500px) {
+            .landing-overlay .onboarding-content { padding-top: 12px; }
+            .landing-overlay .onboarding-content #beginTrailButton { margin-bottom: 12px; }
         }
 
         /* Begin trail button - ornate serif to match mock */

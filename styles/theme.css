@@ -5,6 +5,12 @@
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Noto+Sans+Display:wdth,wght@87.5,700&family=Poppins:wght@400;500;600;700&display=swap');
 
 :root {
+    /* Safe area insets for notched devices (iOS/Android) – use with viewport-fit=cover */
+    --safe-area-top: env(safe-area-inset-top, 0px);
+    --safe-area-bottom: env(safe-area-inset-bottom, 0px);
+    --safe-area-left: env(safe-area-inset-left, 0px);
+    --safe-area-right: env(safe-area-inset-right, 0px);
+
     /* Primary font for body and UI */
     --font-family-primary: 'Poppins', sans-serif;
     /* Display font for "ANIMALS AT THE TOWER" title (no Pirata – use Cinzel) */
@@ -62,6 +68,25 @@
 @media (max-width: 480px) {
     .display-title {
         font-size: clamp(36px, 12vw, 56px);
+    }
+}
+
+/* Responsive base: prevent horizontal scroll, support notched devices */
+html {
+    overflow-x: hidden;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+}
+
+body {
+    overflow-x: hidden;
+    min-height: 100vh;
+    min-height: 100dvh;
+}
+
+@supports (-webkit-touch-callout: none) {
+    body {
+        min-height: -webkit-fill-available;
     }
 }
 
