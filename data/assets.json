@@ -11,7 +11,7 @@
       "icon": { "shadow": "../../assets/Badge.png", "found": "../../assets/Badge.png" },
       "cardImage": "../../assets/Badges/lion.png",
       "model": {
-        "url": "../../assets/models/Lion_sm1.glb",
+        "url": "../../assets/models/Lion1K.glb",
         "usdz": "../../assets/models/Lion.usdz",
         "scale": "1 1 1",
         "rotation": "0 0 0"
@@ -38,7 +38,7 @@
       "icon": { "shadow": "../../assets/Badge.png", "found": "../../assets/Badge.png" },
       "cardImage": "../../assets/Badges/elephant.png",
       "model": {
-        "url": "../../assets/models/Elephant_sm1.glb",
+        "url": "../../assets/models/Elephant1K.glb",
         "usdz": "../../assets/models/Elephant.usdz",
         "scale": "1 1 1",
         "rotation": "0 0 0"
